@@ -47,6 +47,7 @@ export interface GalleryItem {
   id: number;
   label: string;
   category: GalleryCategory;
+  imageUrl: string;
   span: "tall" | "wide" | "normal";
   gradient: string;
   emoji: string;

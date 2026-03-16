@@ -35,5 +35,39 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
  
-
- 
+app/
+├── (auth)/
+│   ├── login/
+│   │   └── page.tsx
+│   └── register/
+│       └── page.tsx
+│
+├── (main)/
+│   ├── layout.tsx              ← AppLayout ici (navbar, sidebar, bottombar)
+│   │
+│   ├── feed/
+│   │   └── page.tsx            ← /feed — fil des posts
+│   │
+│   ├── search/
+│   │   └── page.tsx            ← /search — recherche anime Jikan
+│   │
+│   ├── anime/
+│   │   └── [id]/
+│   │       └── page.tsx        ← /anime/123 — détails d'un anime
+│   │
+│   ├── post/
+│   │   └── new/
+│   │       └── page.tsx        ← /post/new — créer un post
+│   │
+│   ├── profile/
+│   │   ├── page.tsx            ← /profile — mon profil
+│   │   └── [userId]/
+│   │       └── page.tsx        ← /profile/abc — profil d'un autre user
+│   │
+│   ├── notifications/
+│   │   └── page.tsx            ← /notifications
+│   │
+│   └── game/
+│       └── page.tsx            ← /game — XP, quêtes, classement
+│
+└── page.tsx                    ← / landing page
