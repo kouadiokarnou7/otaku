@@ -1,161 +1,169 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { GALLERY_ITEMS, GALLERY_FILTERS } from "@/lib/constants";
-import type { GalleryCategory } from "@/lib/types";
-
+import { motion, useAnimationControls } from "framer-motion";
+import { GALLERY_ITEMS } from "@/lib/constants";
+import { ArrowRight } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import Link from "next/link";
 export default function Gallery() {
-  const [active, setActive] = useState<GalleryCategory | "all">("all");
+  const [isHovered, setIsHovered] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const MotionLink= motion(Link);
+  
+  // On duplique les items pour créer une boucle infinie sans "coupure"
+  const galleryItems = [...GALLERY_ITEMS, ...GALLERY_ITEMS];
 
-  const filtered = active === "all"
-    ? GALLERY_ITEMS
-    : GALLERY_ITEMS.filter((item) => item.category === active);
+  // Fonction pour scroller vers la section d'inscription
+  const scrollToJoin = () => {
+    const element = document.getElementById("join");
+    element?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Gestion du défilement horizontal avec la molette de la souris
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // On empêche le défilement vertical et on applique le horizontal
+      e.preventDefault();
+      container.scrollLeft += e.deltaY * 2; // *2 pour accélérer un peu
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    return () => container.removeEventListener("wheel", handleWheel);
+  }, []);
 
   return (
-    <section id="gallery" style={{ padding:"96px 24px", position:"relative", overflow:"hidden" }}>
-      {/* Séparateur */}
-      <div style={{ position:"absolute",top:0,left:0,right:0,height:1,background:"linear-gradient(90deg,transparent,rgba(0,212,255,0.15),transparent)" }} />
-
+    <section id="gallery" style={{ padding: "96px 0", position: "relative", overflow: "hidden" }}>
       {/* Halo fond */}
-      <div style={{ position:"absolute",left:"50%",top:"50%",transform:"translate(-50%,-50%)",width:800,height:400,borderRadius:"50%",background:"radial-gradient(circle,rgba(0,212,255,0.03),transparent 70%)",pointerEvents:"none" }} />
+      <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: 800, height: 400, borderRadius: "50%", background: "radial-gradient(circle,rgba(255,107,26,0.04),transparent 70%)", pointerEvents: "none" }} />
 
-      <div style={{ maxWidth:1100, margin:"0 auto", position:"relative", zIndex:1 }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 1 }}>
 
         {/* Header */}
         <motion.div
-          initial={{ opacity:0,y:24 }} whileInView={{ opacity:1,y:0 }}
-          viewport={{ once:true }} transition={{ duration:.6 }}
-          style={{ textAlign:"center", marginBottom:40 }}
+          initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }} transition={{ duration: .6 }}
+          style={{ textAlign: "center", marginBottom: 50, padding: "0 24px" }}
         >
-          <span style={{ display:"inline-block",padding:"4px 14px",borderRadius:99,fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:16,color:"#00D4FF",border:"1px solid rgba(0,212,255,0.3)",background:"rgba(0,212,255,0.06)" }}>
+          <span style={{ display: "inline-block", padding: "4px 14px", borderRadius: 99, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 16, color: "var(--o)", border: "1px solid rgba(255,107,26,0.3)", background: "rgba(255,107,26,0.06)" }}>
             Galerie
           </span>
-          <h2 style={{ fontSize:"clamp(26px,5vw,44px)",fontWeight:900,color:"#fff",lineHeight:1.1,marginBottom:12,letterSpacing:-0.5 }}>
+          <h2 style={{ fontSize: "clamp(26px,5vw,44px)", fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: 12, letterSpacing: -0.5 }}>
             L&apos;univers visuel de la{" "}
-            <span style={{ color:"#00D4FF",textShadow:"0 0 40px rgba(0,212,255,0.2)" }}>communauté</span>
+            <span style={{ color: "var(--o)", textShadow: "0 0 40px rgba(255,107,26,0.2)" }}>communauté</span>
           </h2>
-          <p style={{ fontSize:14,color:"rgba(255,255,255,0.38)",maxWidth:440,margin:"0 auto",lineHeight:1.65 }}>
+          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.38)", maxWidth: 440, margin: "0 auto", lineHeight: 1.65 }}>
             Cosplays, fan arts, photos d&apos;événements — la créativité des otakus ivoiriens en images.
           </p>
         </motion.div>
 
-        {/* Filtres */}
-        <div style={{ display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",marginBottom:28 }}>
-          {GALLERY_FILTERS.map((f) => {
-            const isActive = active === f.value;
-            return (
-              <motion.button
-                key={f.value}
-                onClick={() => setActive(f.value as GalleryCategory | "all")}
-                whileTap={{ scale:.95 }}
-                style={{
-                  padding:"6px 16px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer", transition:"all .2s",
-                  border: isActive ? "1px solid rgba(0,212,255,0.5)"  : "1px solid rgba(255,255,255,0.08)",
-                  background: isActive ? "rgba(0,212,255,0.1)"        : "transparent",
-                  color:      isActive ? "#00D4FF"                    : "rgba(255,255,255,0.35)",
-                }}
-              >
-                {f.label}
-              </motion.button>
-            );
-          })}
-        </div>
-
-        {/* Grille masonry
-            Mobile  : 2 colonnes égales
-            Desktop : colonnes 4 avec span pour les items "tall" et "wide"
-        */}
-        <motion.div
-          layout
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
-            gridAutoRows: 160,
-            gap: 10,
-          }}
-          /* Desktop override via class */
-          className="gallery-grid"
+        {/* --- CARROUSEL ANIMÉ INFINI --- */}
+        <div 
+          style={{ position: "relative", width: "100%", overflow: "hidden", cursor: "grab" }}
+          ref={containerRef}
         >
-          <AnimatePresence mode="popLayout">
-            {filtered.map((item, i) => (
+          {/* Masques dégradés sur les côtés pour l'effet infini */}
+          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 80, background: "linear-gradient(to right, #050508, transparent)", zIndex: 2, pointerEvents: "none" }} />
+          <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 80, background: "linear-gradient(to left, #050508, transparent)", zIndex: 2, pointerEvents: "none" }} />
+
+          <motion.div
+            className="flex gap-6"
+            style={{ display: "flex", gap: 24, paddingLeft: 20 }}
+            animate={{
+              x: [0, -1500], // Défile vers la gauche
+              transition: {
+                x: {
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  duration: 25, // Vitesse de défilement (plus c'est haut, plus c'est lent)
+                  ease: "linear",
+                },
+              },
+            }}
+            // On ralentit fortement au survol pour que l'utilisateur puisse cliquer
+            whileHover={{ transition: { duration: 0.5 } }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            {galleryItems.map((item, i) => (
               <motion.div
-                key={item.id}
-                layout
-                initial={{ opacity:0, scale:.9 }}
-                animate={{ opacity:1, scale:1 }}
-                exit={{ opacity:0, scale:.85 }}
-                transition={{ duration:.35, delay: i * 0.05 }}
-                whileHover={{ scale:1.03, zIndex:10 }}
+                key={i}
+                whileHover={{ scale: 1.02, y: -5, boxShadow: "0 15px 30px rgba(0,0,0,0.4)" }}
+                transition={{ type: "spring", stiffness: 300 }}
                 style={{
+                  minWidth: 280,
+                  height: 380,
                   position: "relative",
-                  borderRadius: 14,
+                  borderRadius: 16,
                   overflow: "hidden",
-                  cursor: "pointer",
                   border: "1px solid rgba(255,255,255,0.06)",
                   background: item.gradient,
+                  flexShrink: 0,
+                  userSelect: "none",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.2)"
                 }}
-                className={[
-                  item.span === "tall" ? "gallery-tall"  : "",
-                  item.span === "wide" ? "gallery-wide"  : "",
-                ].join(" ")}
               >
                 {/* Emoji */}
-                <div style={{ position:"absolute",top:10,left:10,fontSize:22,userSelect:"none",filter:"drop-shadow(0 2px 4px rgba(0,0,0,.5))" }}>
+                <div style={{ position: "absolute", top: 16, left: 16, fontSize: 28, userSelect: "none", filter: "drop-shadow(0 2px 4px rgba(0,0,0,.5))" }}>
                   {item.emoji}
                 </div>
 
-                {/* Overlay au hover */}
-                <motion.div
-                  initial={{ opacity:0 }}
-                  whileHover={{ opacity:1 }}
-                  style={{ position:"absolute",inset:0,background:"rgba(0,0,0,0.65)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:12,textAlign:"center" }}
-                >
-                  <span style={{ fontSize:9,color:"rgba(255,255,255,0.55)",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:6 }}>
+                {/* Overlay Gradient Bottom */}
+                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "50%", background: "linear-gradient(to top, rgba(0,0,0,0.9), transparent)", padding: "20px 16px", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+                  <span style={{ fontSize: 10, color: "var(--o)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4, textTransform: "uppercase" }}>
                     {item.category}
                   </span>
-                  <span style={{ fontSize:12,fontWeight:700,color:"#fff",lineHeight:1.3 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", lineHeight: 1.3 }}>
                     {item.label}
                   </span>
-                </motion.div>
-
-                {/* Légende mobile (toujours visible) */}
-                <div style={{ position:"absolute",bottom:0,left:0,right:0,padding:"8px 12px",background:"linear-gradient(to top,rgba(0,0,0,0.75),transparent)" }}>
-                  <p style={{ fontSize:10,color:"rgba(255,255,255,0.7)",fontWeight:600,margin:0,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis" }}>
-                    {item.label}
-                  </p>
                 </div>
+
+                {/* Hover Overlay lumineux */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(255,107,26,0.15), rgba(124,63,219,0.15))", mixBlendMode: "overlay" }}
+                />
               </motion.div>
             ))}
-          </AnimatePresence>
-        </motion.div>
+          </motion.div>
+        </div>
 
-        {/* CTA bas */}
+        {/* --- BOUTON CTA --- */}
         <motion.div
-          initial={{ opacity:0 }} whileInView={{ opacity:1 }}
-          viewport={{ once:true }} transition={{ delay:.3 }}
-          style={{ textAlign:"center", marginTop:36 }}
+          initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }} transition={{ delay: 0.4 }}
+          style={{ textAlign: "center", marginTop: 48 }}
         >
-          <motion.button
-            whileHover={{ borderColor:"rgba(0,212,255,0.4)",color:"#00D4FF" }}
-            style={{ background:"transparent",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"11px 26px",fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.38)",cursor:"pointer",transition:"all .2s" }}
+          <MotionLink
+            href="/feed"
+            
+            whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(255,107,26,0.5)" }}
+            whileTap={{ scale: 0.95 }}
+            style={{
+              background: "#FF6B1A",
+              color: "#fff",
+              border: "none",
+              borderRadius: 50,
+              padding: "16px 36px",
+              fontSize: 15,
+              fontWeight: 800,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em"
+            }}
           >
-            Voir plus de créations →
-          </motion.button>
+            Rejoindre l&apos;aventure <ArrowRight size={18} />
+          </MotionLink>
         </motion.div>
-      </div>
 
-      {/* Styles responsive pour la grille */}
-      <style>{`
-        @media (min-width: 768px) {
-          .gallery-grid {
-            grid-template-columns: repeat(4, 1fr) !important;
-            grid-auto-rows: 190px !important;
-          }
-          .gallery-tall { grid-row: span 2; }
-          .gallery-wide { grid-column: span 2; }
-        }
-      `}</style>
+      </div>
     </section>
   );
 }

@@ -4,17 +4,24 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import { Swords, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import InputField from "@/components/auth/InputField";
-
+import AuthBackground from "@/components/auth/layout";
 
 // ── Schéma Zod ───────────────────────────────────────────────
 const loginSchema = z.object({
-  email: z
+  identifier: z
     .string()
-    .min(1, "L'email est requis")
-    .email("Format d'email invalide"),
+    .min(1, "L'email ou le pseudo est requis")
+    .refine(
+      (val) => {
+        const isEmail    = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+        const isUsername = val.length >= 3 && /^[a-zA-Z0-9_]+$/.test(val);
+        return isEmail || isUsername;
+      },
+      { message: "Entrez un email valide ou un pseudo (min. 3 caractères)" }
+    ),
   password: z
     .string()
     .min(1, "Le mot de passe est requis")
@@ -23,7 +30,13 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-// ── Google SVG Icon ──────────────────────────────────────────
+function detectIdentifierType(value: string): "email" | "pseudo" | null {
+  if (!value) return null;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "email";
+  if (value.length >= 3) return "pseudo";
+  return null;
+}
+
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 48 48">
@@ -35,26 +48,28 @@ function GoogleIcon() {
   );
 }
 
-// ── Page Login ───────────────────────────────────────────────
 export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
 
+  const identifierValue = watch("identifier") ?? "";
+  const identifierType  = detectIdentifierType(identifierValue);
+
   const onSubmit = async (data: LoginForm) => {
-    // TODO : intégrer Firebase Auth
-    console.log("Login data:", data);
-    await new Promise((r) => setTimeout(r, 1000)); // simulation
+    // TODO : Firebase Auth
+    console.log("Login:", { ...data, detectedAs: identifierType });
+    await new Promise((r) => setTimeout(r, 1000));
   };
 
   return (
-    <main style={{ minHeight:"100vh", background:"#050508", display:"flex", alignItems:"center", justifyContent:"center", padding:"24px", position:"relative", overflow:"hidden" }}>
+    <main style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding:"24px", position:"relative", overflow:"hidden" }}>
 
-      {/* Halos de fond */}
-      <div style={{ position:"absolute", width:600, height:600, borderRadius:"50%", background:"radial-gradient(circle,rgba(255,107,26,0.06),transparent 60%)", top:-120, left:"50%", transform:"translateX(-50%)", pointerEvents:"none" }} />
-      <div style={{ position:"absolute", width:300, height:300, borderRadius:"50%", background:"radial-gradient(circle,rgba(255,107,26,0.03),transparent 65%)", bottom:-60, right:-40, pointerEvents:"none" }} />
+      {/* Fond animé partagé + bouton retour */}
+      <AuthBackground />
 
       {/* Card */}
       <motion.div
@@ -64,9 +79,8 @@ export default function LoginPage() {
         style={{ width:"100%", maxWidth:420, background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:20, padding:"36px 32px", backdropFilter:"blur(20px)", position:"relative", zIndex:1 }}
       >
         {/* Logo */}
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginBottom:28 }}>
-          <Swords size={22} color="#FF6B1A" />
-          <span style={{ fontSize:18, fontWeight:900, color:"#fff", letterSpacing:1 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", marginBottom:28 }}>
+          <span style={{ fontSize:20, fontWeight:900, color:"#fff", letterSpacing:1 }}>
             OTAKU <span style={{ color:"#FF6B1A" }}>225</span>
           </span>
         </div>
@@ -81,17 +95,36 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Formulaire Email/Mdp */}
+        {/* Formulaire */}
         <form onSubmit={handleSubmit(onSubmit)} style={{ display:"flex", flexDirection:"column", gap:16 }} noValidate>
 
-          <InputField
-            label="Email"
-            type="email"
-            placeholder="ton@email.com"
-            registration={register("email")}
-            error={errors.email?.message}
-            autoComplete="email"
-          />
+          <div style={{ position:"relative" }}>
+            <InputField
+              label="Identifiant"
+              type="text"
+              placeholder="ton@email.com ou ton_pseudo"
+              registration={register("identifier")}
+              error={errors.identifier?.message}
+              autoComplete="username"
+            />
+            {identifierType && !errors.identifier && (
+              <motion.span
+                initial={{ opacity:0, scale:.8 }}
+                animate={{ opacity:1, scale:1 }}
+                style={{
+                  position:"absolute", top:0, right:0,
+                  fontSize:9, fontWeight:700, letterSpacing:"0.08em",
+                  textTransform:"uppercase", padding:"3px 8px",
+                  borderRadius:99, border:"1px solid",
+                  color:       identifierType === "email" ? "#00D4FF" : "#FF6B1A",
+                  borderColor: identifierType === "email" ? "rgba(0,212,255,0.35)" : "rgba(255,107,26,0.35)",
+                  background:  identifierType === "email" ? "rgba(0,212,255,0.08)" : "rgba(255,107,26,0.08)",
+                }}
+              >
+                {identifierType === "email" ? "Email ✓" : "Pseudo ✓"}
+              </motion.span>
+            )}
+          </div>
 
           <InputField
             label="Mot de passe"
@@ -102,9 +135,9 @@ export default function LoginPage() {
             autoComplete="current-password"
           />
 
-          {/* Mot de passe oublié */}
           <div style={{ textAlign:"right", marginTop:-8 }}>
-            <Link href="#" style={{ fontSize:12, color:"rgba(255,107,26,0.7)", textDecoration:"none", transition:"color .2s" }}
+            <Link href="#"
+              style={{ fontSize:12, color:"rgba(255,107,26,0.7)", textDecoration:"none", transition:"color .2s" }}
               onMouseEnter={e => (e.currentTarget.style.color = "#FF6B1A")}
               onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,107,26,0.7)")}
             >
@@ -112,7 +145,6 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          {/* Bouton submit Email/Mdp */}
           <motion.button
             type="submit"
             disabled={isSubmitting}
@@ -126,21 +158,18 @@ export default function LoginPage() {
                 Connexion...
               </>
             ) : (
-              <>
-                Se connecter <ArrowRight size={15} />
-              </>
+              <>Se connecter <ArrowRight size={15} /></>
             )}
           </motion.button>
         </form>
 
-        {/* Séparateur (Optionnel, mais garde une séparation visuelle propre) */}
-        <div style={{ display:"flex", alignItems:"center", gap:12, margin: "24px 0" }}>
+        {/* Séparateur */}
+        <div style={{ display:"flex", alignItems:"center", gap:12, margin:"24px 0" }}>
           <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.07)" }} />
           <span style={{ fontSize:11, color:"rgba(255,255,255,0.25)", letterSpacing:"0.08em" }}>OU</span>
           <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.07)" }} />
         </div>
 
-        {/* Bouton Google (Déplacé ici, en bas) */}
         <motion.button
           type="button"
           whileHover={{ background:"rgba(255,255,255,0.07)", borderColor:"rgba(255,255,255,0.2)" }}
@@ -151,10 +180,10 @@ export default function LoginPage() {
           Continuer avec Google
         </motion.button>
 
-        {/* Lien inscription */}
         <p style={{ textAlign:"center", fontSize:13, color:"rgba(255,255,255,0.35)", marginTop:0 }}>
           Pas encore membre ?{" "}
-          <Link href="signin" style={{ color:"#FF6B1A", fontWeight:700, textDecoration:"none" }}
+          <Link href="/register"
+            style={{ color:"#FF6B1A", fontWeight:700, textDecoration:"none" }}
             onMouseEnter={e => (e.currentTarget.style.textDecoration = "underline")}
             onMouseLeave={e => (e.currentTarget.style.textDecoration = "none")}
           >
@@ -163,7 +192,6 @@ export default function LoginPage() {
         </p>
       </motion.div>
 
-      {/* Animation spinner */}
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </main>
   );

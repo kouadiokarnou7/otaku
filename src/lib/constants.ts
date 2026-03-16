@@ -1,5 +1,6 @@
 // src/lib/constants.ts
 import { Zap, Users, Calendar, BookOpen, Trophy, Flame } from "lucide-react";
+import Image from "next/image";
 
 // Import des types uniquement
 import type { 
@@ -113,12 +114,12 @@ export const ABOUT: AboutData = {
 
 // ── GALLERY ─────────────────────────────────────────────────
 export const GALLERY_ITEMS: GalleryItem[] = [
-  { id: 1, label: "Cosplay Naruto ABI'CON 2024", category: "cosplay", span: "tall", gradient: "linear-gradient(135deg,#7f2000,#1a0000)", emoji: "🍥" },
-  { id: 2, label: "Fan Art – Goku Ivoirien", category: "fanart", span: "normal", gradient: "linear-gradient(135deg,#7a4800,#1a0e00)", emoji: "⚡" },
-  { id: 3, label: "Event Cosplay Cocody", category: "event", span: "normal", gradient: "linear-gradient(135deg,#003d5c,#001a28)", emoji: "🎌" },
-  { id: 4, label: "Fan Art – Akatsuki 225", category: "artwork", span: "wide", gradient: "linear-gradient(135deg,#3d0000,#0a0000)", emoji: "🌙" },
-  { id: 5, label: "Tournoi Dragon Ball Z", category: "event", span: "normal", gradient: "linear-gradient(135deg,#001f5c,#000b28)", emoji: "🏆" },
-  { id: 6, label: "Cosplay Demon Slayer", category: "cosplay", span: "normal", gradient: "linear-gradient(135deg,#3d005c,#0a0028)", emoji: "⚔️" },
+  { id: 1, label: "Cosplay Naruto ABI'CON 2024", category: "cosplay", span: "tall", gradient: "linear-gradient(135deg,#7f2000,#1a0000)", emoji: "🍥", imageUrl: "@/../..public/img3.png" },
+  { id: 2, label: "Fan Art – Goku Ivoirien", category: "fanart", span: "normal", gradient: "linear-gradient(135deg,#7a4800,#1a0e00)", emoji: "⚡", imageUrl: "@/../..public/image1.png" },
+  { id: 3, label: "Event Cosplay Cocody", category: "event", span: "normal", gradient: "linear-gradient(135deg,#003d5c,#001a28)", emoji: "🎌", imageUrl: "@/../..public/event1.jpg" },
+  { id: 4, label: "Fan Art – Akatsuki 225", category: "artwork", span: "wide", gradient: "linear-gradient(135deg,#3d0000,#0a0000)", emoji: "🌙", imageUrl: "@/../..public/artwork1.jpg" },
+  { id: 5, label: "Tournoi Dragon Ball Z", category: "event", span: "normal", gradient: "linear-gradient(135deg,#001f5c,#000b28)", emoji: "🏆", imageUrl: "@/../..public/event2.jpg" },
+  { id: 6, label: "Cosplay Demon Slayer", category: "cosplay", span: "normal", gradient: "linear-gradient(135deg,#3d005c,#0a0028)", emoji: "⚔️", imageUrl: "@/../..public/cosplay2.jpg" },
 ];
 
 export const GALLERY_FILTERS: GalleryFilter[] = [
