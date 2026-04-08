@@ -8,25 +8,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import InputField from "@/components/auth/InputField";
 import AuthBackground from "@/components/auth/layout";
-
-// ── Schéma Zod ───────────────────────────────────────────────
-const loginSchema = z.object({
-  identifier: z
-    .string()
-    .min(1, "L'email ou le pseudo est requis")
-    .refine(
-      (val) => {
-        const isEmail    = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
-        const isUsername = val.length >= 3 && /^[a-zA-Z0-9_]+$/.test(val);
-        return isEmail || isUsername;
-      },
-      { message: "Entrez un email valide ou un pseudo (min. 3 caractères)" }
-    ),
-  password: z
-    .string()
-    .min(1, "Le mot de passe est requis")
-    .min(6, "Minimum 6 caractères"),
-});
+import { loginSchema } from "@/lib/validators";
 
 type LoginForm = z.infer<typeof loginSchema>;
 

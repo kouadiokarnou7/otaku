@@ -138,7 +138,7 @@ export default function Gallery() {
           style={{ textAlign: "center", marginTop: 48 }}
         >
           <MotionLink
-            href="/feed"
+            href="/register"
             
             whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(255,107,26,0.5)" }}
             whileTap={{ scale: 0.95 }}

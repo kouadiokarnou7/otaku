@@ -8,38 +8,10 @@ import { ArrowRight, Check } from "lucide-react";
 import Link from "next/link";
 import InputField from "@/components/auth/InputField";
 import AuthBackground from "@/components/auth/layout";
-
-// ── Schéma Zod ───────────────────────────────────────────────
-const registerSchema = z
-  .object({
-    username: z
-      .string()
-      .min(1, "Le pseudo est requis")
-      .min(3, "Minimum 3 caractères")
-      .max(15, "Maximum 15 caractères")
-      .regex(/^[a-zA-Z0-9_]+$/, "Lettres, chiffres et _ uniquement"),
-    email: z
-      .string()
-      .min(1, "L'email est requis")
-      .email("Format d'email invalide"),
-    password: z
-      .string()
-      .min(1, "Le mot de passe est requis")
-      .min(6, "Minimum 6 caractères")
-      .max(50, "Maximum 50 caractères")
-      .regex(/[A-Z]/, "Au moins une majuscule (A-Z)")
-      .regex(/[0-9]/, "Au moins un chiffre (0-9)")
-      .regex(/[";:,\/\\&!?\@#$%\*\(\)\-\_\+\=]/, "Au moins un caractère spécial")
-      .regex(/^\S*$/, "Aucun espace autorisé"),
-    confirmPassword: z
-      .string()
-      .min(1, "Confirme ton mot de passe"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Les mots de passe ne correspondent pas",
-    path:    ["confirmPassword"],
-  });
-
+import Image from "next/image";
+import logo from "@/assets/logo.png";
+import {registerSchema} from "@/lib/validators"
+import {useRegister} from "@/lib/store/auth/signin";
 type RegisterForm = z.infer<typeof registerSchema>;
 
 // ── Indicateur de force ──────────────────────────────────────
@@ -59,6 +31,9 @@ function PasswordStrength({ password }: { password: string }) {
   const score  = checks.filter((c) => c.ok).length;
   const color  = score >= 5 ? "#2ecc71" : score >= 3 ? "#f39c12" : "#dc3535";
   const label  = score >= 5 ? "Fort"    : score >= 3 ? "Moyen"   : "Faible";
+  
+  
+
 
   return (
     <div style={{ padding:"8px 10px", background:"rgba(0,0,0,0.2)", borderRadius:8, border:"1px solid rgba(255,255,255,0.05)" }}>
@@ -102,12 +77,35 @@ export default function RegisterPage() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) });
 
+  //
+  const {
+    registerdata,
+    registerWithGoogle, // 👈 AJOUT IMPORTANT
+    loading,
+    error,} = useRegister();
   const passwordValue = watch("password") ?? "";
 
-  const onSubmit = async (data: RegisterForm) => {
-    // TODO : Firebase Auth
-    console.log("Register data:", data);
-    await new Promise((r) => setTimeout(r, 1200));
+   const onSubmit = async ( data: RegisterForm ) => {
+    try {
+      
+      await registerdata({
+        username: data.username,
+        email: data.email,
+        password: data.password,
+      });
+      // ✅ La redirection est gérée dans le hook
+    } catch (err) {
+      // ❌ L'erreur est déjà affichée via authError
+      console.error("Registration failed:", err);
+    }
+  };
+  const handleGoogleClick = async () => {
+    try {
+     
+      await registerWithGoogle();
+    } catch (err) {
+      console.error("Google auth failed:", err);
+    }
   };
 
   return (
@@ -125,9 +123,8 @@ export default function RegisterPage() {
       >
         {/* Logo */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"center", marginBottom:28 }}>
-          <span style={{ fontSize:20, fontWeight:900, color:"#fff", letterSpacing:1 }}>
-            OTAKU <span style={{ color:"#FF6B1A" }}>225</span>
-          </span>
+          
+          <Image src={logo} alt="Otaku 225 Logo" width={120} height={50} className="object-contain" priority />
         </div>
 
         {/* Titre */}
@@ -143,7 +140,8 @@ export default function RegisterPage() {
         {/* Google */}
         <motion.button
           type="button"
-          whileHover={{ background:"rgba(255,255,255,0.07)", borderColor:"rgba(255,255,255,0.2)" }}
+          onClick={handleGoogleClick}
+          whileHover={{ background:"rgba(31, 30, 30, 0.07)", borderColor:"rgba(255,255,255,0.2)" }}
           whileTap={{ scale:.97 }}
           style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:10, padding:"12px", borderRadius:10, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.04)", color:"#fff", fontSize:14, fontWeight:600, cursor:"pointer", marginBottom:20, transition:"all .2s" }}
         >
