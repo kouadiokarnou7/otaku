@@ -8,6 +8,8 @@ import Image from "next/image";
 import Link from "next/link";
 import logo from "@/assets/logo.png";
 
+import { Analytics } from "firebase/analytics";
+import { u } from "framer-motion/client";
 // ✅ CORRECTION : Définir MotionLink EN DEHORS du composant
 const MotionLink = motion(Link);
 
@@ -43,6 +45,9 @@ export default function Header() {
 
     return () => observer.disconnect();
   }, []);
+
+ // l'analytique du site 
+ 
 
   const scrollTo = (id: string) => {
     setIsOpen(false);

@@ -1,0 +1,29 @@
+name: CI Pipeline # Nom de l'action
+
+on:
+  push:
+    branches: [ main ] # Se lance quand on push sur main
+  pull_request:
+    branches: [ main ] # Se lance quand on ouvre une PR
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest # Le robot tourne sur une machine Linux
+
+    steps:
+    - name: 1. Récupérer le code
+      uses: actions/checkout@v4
+
+    - name: 2. Installer Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+
+    - name: 3. Installer les dépendances
+      run: npm install
+
+    - name: 4. Lancer le build Next.js
+      run: npm run build
+      
+    - name: 5. Lancer le Linter (vérification code)
+      run: npm run lint
