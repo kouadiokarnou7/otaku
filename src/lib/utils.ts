@@ -16,13 +16,15 @@ export function generateAvatar(username: string) {
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebaseconfig";
 
-export async function isUsernameAvailable(username: string) {
-  const q = query(
-    collection(db, "users"),
-    where("username", "==", username.toLowerCase())
-  );
-
-  const snapshot = await getDocs(q);
-
-  return snapshot.empty; // true = disponible
+export function generateUniqueUsername(base: string): string {
+  const clean = base
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_]/g, "")
+    .slice(0, 12);
+  
+  // Suffixe aléatoire sur 4 caractères = 1,6M de combinaisons
+  const suffix = Math.random().toString(36).slice(2, 6);
+  
+  return `${clean}_${suffix}`;
 }

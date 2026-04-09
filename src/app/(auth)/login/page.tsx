@@ -9,6 +9,7 @@ import Link from "next/link";
 import InputField from "@/components/auth/InputField";
 import AuthBackground from "@/components/auth/layout";
 import { loginSchema } from "@/lib/validators";
+import { useLogin } from "@/lib/store/auth/login";
 
 type LoginForm = z.infer<typeof loginSchema>;
 
@@ -37,14 +38,18 @@ export default function LoginPage() {
     watch,
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
+  const {user,loading,error,loginWithCredentials,loginWithGoogle} = useLogin();
 
   const identifierValue = watch("identifier") ?? "";
   const identifierType  = detectIdentifierType(identifierValue);
 
   const onSubmit = async (data: LoginForm) => {
     // TODO : Firebase Auth
-    console.log("Login:", { ...data, detectedAs: identifierType });
-    await new Promise((r) => setTimeout(r, 1000));
+    try {
+      await loginWithCredentials(data.identifier, data.password);
+    } catch (err) {
+      // le login s'occupe déjà de formater les erreurs, donc pas besoin de faire du cas par cas ici
+    }
   };
 
   return (
@@ -154,6 +159,7 @@ export default function LoginPage() {
 
         <motion.button
           type="button"
+          onClick={()=> loginWithGoogle()}
           whileHover={{ background:"rgba(255,255,255,0.07)", borderColor:"rgba(255,255,255,0.2)" }}
           whileTap={{ scale:.97 }}
           style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:10, padding:"12px", borderRadius:10, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.04)", color:"#fff", fontSize:14, fontWeight:600, cursor:"pointer", marginBottom:20, transition:"all .2s" }}
@@ -177,4 +183,4 @@ export default function LoginPage() {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </main>
   );
-}
+} 

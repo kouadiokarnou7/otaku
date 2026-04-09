@@ -92,6 +92,7 @@ export default function RegisterPage() {
         username: data.username,
         email: data.email,
         password: data.password,
+        confirmPassword: data.confirmPassword,
       });
       // ✅ La redirection est gérée dans le hook
     } catch (err) {
