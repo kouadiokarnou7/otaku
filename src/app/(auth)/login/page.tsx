@@ -9,7 +9,7 @@ import Link from "next/link";
 import InputField from "@/components/auth/InputField";
 import AuthBackground from "@/components/auth/layout";
 import { loginSchema } from "@/lib/validators";
-import { useLogin } from "@/lib/store/auth/login";
+import { useLogin } from "@/lib/hooks/store/auth/login";
 
 type LoginForm = z.infer<typeof loginSchema>;
 

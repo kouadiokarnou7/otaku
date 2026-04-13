@@ -2,7 +2,7 @@
 "use client";
 
 import { User } from "lucide-react";
-import { useAuth } from "@/lib/store/auth/useauth";
+import { useAuth } from "@/lib/hooks/store/auth/useauth";
 
 export default function DynamicProfileIcon() {
   const { user, isInitializing } = useAuth();

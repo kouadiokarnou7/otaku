@@ -5,7 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 
  import type { InputFieldProps } from "@/lib/types";
  import  { Input } from "@/components/ui/input";
- import {Button} from "@/components/ui/button";
+ import Button from "@/components/ui/button";
 
 export default function InputField({
   label,

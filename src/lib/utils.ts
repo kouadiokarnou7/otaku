@@ -6,6 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 
+
 export function generateAvatar(username: string) {
   if (!username) return null;
 

@@ -11,7 +11,7 @@ import AuthBackground from "@/components/auth/layout";
 import Image from "next/image";
 import logo from "@/assets/logo.png";
 import {registerSchema} from "@/lib/validators"
-import {useRegister} from "@/lib/store/auth/signin";
+import {useRegister} from "@/lib/hooks/store/auth/signin";
 type RegisterForm = z.infer<typeof registerSchema>;
 
 // ── Indicateur de force ──────────────────────────────────────

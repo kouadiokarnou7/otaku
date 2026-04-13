@@ -30,7 +30,7 @@ export default function AppLayout({ children, notifCount = 0 }: AppLayoutProps) 
       ── */}
       <main
         className="pt-[56px] pb-[64px] md:pt-[60px] md:pb-0"
-        style={{ color:"#fff" }}
+        style={{ color:"#dacfcf" }}
       >
         <div style={{ maxWidth:680, margin:"0 auto", padding:"24px 16px" }}>
           {children}

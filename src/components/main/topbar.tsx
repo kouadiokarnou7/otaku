@@ -7,7 +7,7 @@ import { Bell, User, LogOut, Loader2 } from "lucide-react";
 import { NAV_ITEMS } from "./navConstants";
 import logo from "@/assets/logo.png";
 import Image from "next/image";
-import { useAuth } from "@/lib/store/auth/useauth"; 
+import { useAuth } from "@/lib/hooks/store/auth/useauth"; 
 
 // motion(Link) — on anime directement le lien
 const MotionLink = motion(Link);

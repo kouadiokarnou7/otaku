@@ -1,6 +1,7 @@
 
 import type { UseFormRegisterReturn } from "react-hook-form";
-
+import { Timestamp } from "firebase/firestore";
+import { Date } from "@hugeicons/core-free-icons";
 
 // src/lib/types.ts
 import { LucideIcon } from "lucide-react";
@@ -85,4 +86,109 @@ export interface InputFieldProps {
   error?:       string;
   autoComplete?: string;
   avatar?:       string;
+}
+
+
+
+export interface ProfileStats {
+  animesCount: number;
+  postsCount: number;
+  gamesCount: number;        // ✅ Nouveau : suivi des jeux
+  xp: number;                // ✅ Points d'expérience pour la progression
+  level: number;             // ✅ Niveau calculé depuis l'XP
+  rank: number;              // Rang global (classement)
+  badge: {                   // ✅ Badge structuré pour plus de flexibilité
+    id: string;
+    name: string;
+    icon: string;            // emoji ou URL icône
+    color: string;           // ex: "violet", "gold"
+  } | null;
+}
+
+export interface UserProfile {
+  uid: string;
+  username: string;
+  displayName: string;
+  email: string;
+  photoURL: string | null;
+  bio: string;
+  phone: string;
+  createdAt: Date | null;
+  updatedAt?: Date | null;
+  stats: ProfileStats;
+}
+
+// ✅ Helpers pour la progression
+export const calculateLevel = (xp: number): number => 
+  Math.floor(1 + Math.sqrt(xp / 100)); // Formule exemple, à ajuster
+
+export const getNextLevelXp = (level: number): number => 
+  Math.pow(level, 2) * 100;
+ 
+export interface ProfileFormData {
+  displayName: string;
+  bio: string;
+  phone: string;
+}
+ 
+export interface FeedbackMessage {
+  type: "success" | "error" | "";
+  text: string;
+}
+ 
+
+//les post et autres types liés au feed
+
+export interface PostMedia {
+  url: string;
+  type: 'image' | 'video';
+  thumbnail?: string;
+  width?: number;
+  height?: number;
+}
+
+export interface Post {
+  id: string;
+  uid: string;
+  username: string;
+  userAvatar: string | null;
+  userLevel?: number;        // Pour affichage gamifié
+  userBadge?: string;        // Badge icon rapide
+  
+  content: string;
+  media?: PostMedia;
+  
+  stats: {
+    likes: number;
+    comments: number;
+    shares: number;
+  };
+  
+  likedByUser?: boolean;     // Optimistic UI
+  
+  metadata: {
+    createdAt: Date;
+    updatedAt?: Date;
+    tags?: string[];
+    visibility: 'public' | 'followers' | 'private';
+  };
+}
+
+export interface Comment {
+  id: string;
+  postId: string;
+  uid: string;
+  username: string;
+  userAvatar: string | null;
+  content: string;
+  createdAt: Timestamp;
+  likes: number;
+}
+
+export interface ComposerState {
+  content: string;
+  mediaFile: File | null;
+  mediaPreview: string | null;
+  isUploading: boolean;
+  visibility: 'public' | 'followers';
 }

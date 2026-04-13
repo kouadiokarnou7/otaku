@@ -9,9 +9,9 @@ import Link from "next/link";
 import logo from "@/assets/logo.png";
 
 import { Analytics } from "firebase/analytics";
-import { u } from "framer-motion/client";
-// ✅ CORRECTION : Définir MotionLink EN DEHORS du composant
-const MotionLink = motion(Link);
+
+
+const MotionLink = motion.create(Link);
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);

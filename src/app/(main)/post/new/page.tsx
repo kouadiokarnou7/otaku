@@ -1,3 +1,4 @@
+// src/features/feed/components/CreatePostBanner.tsx
 "use client";
 
 import { motion } from "framer-motion";
@@ -7,18 +8,29 @@ import Link from "next/link";
 export default function CreatePostBanner() {
   return (
     <motion.div
-      initial={{ opacity: 0, y: -12 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.3 }}
       style={{
-        background:   "rgba(255,255,255,0.03)",
-        border:       "1px solid rgba(255,255,255,0.07)",
-        borderRadius: 16,
-        padding:      "14px 16px",
-        marginBottom: 12,
+        position:     "fixed",
+        bottom:       0,
+        left:         0,
+        right:        0,
+        zIndex:       30,
+        background:   "rgba(8, 8, 8, 0.95)", // #0a0e27 avec opacité
+        backdropFilter: "blur(8px)",
+        borderTop:    "1px solid rgba(255,255,255,0.07)",
+        padding:      "12px 16px 16px",
+        boxShadow:    "0 -4px 20px rgba(0,0,0,0.3)",
       }}
     >
-      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+      <div style={{ 
+        maxWidth: 640, 
+        margin: "0 auto", 
+        display:"flex", 
+        alignItems:"center", 
+        gap:12 
+      }}>
 
         {/* Avatar placeholder */}
         <div style={{
@@ -59,7 +71,14 @@ export default function CreatePostBanner() {
       </div>
 
       {/* Actions rapides */}
-      <div style={{ display:"flex", gap:6, marginTop:10, paddingLeft:50 }}>
+      <div style={{ 
+        display:"flex", 
+        gap:6, 
+        marginTop:10, 
+        paddingLeft:50,
+        maxWidth: 640,
+        margin: "10px auto 0"
+      }}>
         <Link href="/post/new" style={{ textDecoration:"none" }}>
           <motion.button
             whileHover={{ background:"rgba(255,107,26,0.1)", borderColor:"rgba(255,107,26,0.3)", color:"#FF6B1A" }}
