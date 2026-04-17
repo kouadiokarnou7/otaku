@@ -1,9 +1,9 @@
-// src/features/feed/components/PostComposer.tsx
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Image, Send, X } from "lucide-react";
+import { motion, AnimatePresence, Variants } from "framer-motion";
+import Image from "next/image";
+import { Image as ImageIcon, Send, X } from "lucide-react";
 import type { UserProfile } from "@/lib/types";
 
 interface PostComposerProps {
@@ -39,7 +39,7 @@ export default function PostComposer({ user, onSubmit, onCancel }: PostComposerP
 
   // Animation variants pour le responsive
   // Mobile : slide du bas | Desktop : fade + scale
-  const modalVariants = {
+  const modalVariants: Variants = {
     hidden: { 
       y: "100%", 
       opacity: 0,
@@ -49,7 +49,7 @@ export default function PostComposer({ user, onSubmit, onCancel }: PostComposerP
       y: 0, 
       opacity: 1, 
       scale: 1,
-      transition: { type: "spring", damping: 25, stiffness: 300 }
+      transition: { type: "spring" as const, damping: 25, stiffness: 300 }
     },
     exit: { 
       y: "100%", 
@@ -96,16 +96,17 @@ export default function PostComposer({ user, onSubmit, onCancel }: PostComposerP
 
             {/* Contenu du formulaire */}
             <div className="flex gap-3">
-              <img
+              <Image
                 src={user.photoURL || "/avatar-placeholder.png"}
                 alt={user.displayName}
-                className="w-10 h-10 rounded-full border border-[#2D3748] self-start"
+                width={40}
+                height={40}
+                className="rounded-full border border-[#2D3748] self-start"
               />
               <div className="flex-1">
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="Quoi de neuf, Nakama ?"
                   rows={3}
                   className="w-full bg-transparent text-white placeholder-gray-500 text-sm resize-none focus:outline-none"
                   autoFocus
@@ -113,7 +114,13 @@ export default function PostComposer({ user, onSubmit, onCancel }: PostComposerP
                 
                 {preview && (
                   <div className="mt-3 relative inline-block">
-                    <img src={preview} alt="Preview" className="max-h-40 rounded-lg border border-[#2D3748]" />
+                    <Image
+                      src={preview}
+                      alt="Preview"
+                      width={20}
+                      height={20}
+                      className="max-h-40 rounded-lg border border-[#2D3748]"
+                    />
                     <button
                       type="button"
                       onClick={() => setPreview(null)}
@@ -127,7 +134,7 @@ export default function PostComposer({ user, onSubmit, onCancel }: PostComposerP
                 <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#1e2540]">
                   <div className="flex gap-2">
                     <label className="cursor-pointer p-2 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10 rounded-full transition">
-                      <Image size={20} />
+                      <ImageIcon size={20} />
                       <input type="file" accept="image/*" onChange={handleImage} className="hidden" />
                     </label>
                     {/* Ajouter d'autres boutons (GIF, Emoji) ici */}

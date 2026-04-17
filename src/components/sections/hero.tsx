@@ -101,13 +101,18 @@ function KanjiRain() {
 }
 
 function Marquee() {
-  const doubled = [...ANIME_TITLES, ...ANIME_TITLES];
   return (
     <div style={{ overflow: "hidden", borderTop: "1px solid var(--bdr)", borderBottom: "1px solid var(--bdr)", padding: "13px 0", background: "rgba(255,107,26,0.02)", position: "relative", zIndex: 10 }}>
       <motion.div animate={{ x: ["0%", "-50%"] }} transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
         style={{ display: "flex", gap: 44, width: "max-content", whiteSpace: "nowrap" }}>
-        {doubled.map((t, i) => (
-          <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 10, fontFamily: "var(--f-display)", fontSize: 20, letterSpacing: 2, color: "var(--dim)" }}>
+        {ANIME_TITLES.map((t, i) => (
+          <span key={`first-${i}`} style={{ display: "inline-flex", alignItems: "center", gap: 10, fontFamily: "var(--f-display)", fontSize: 20, letterSpacing: 2, color: "var(--dim)" }}>
+            <b style={{ color: "var(--o)", fontWeight: 400 }}>{t}</b>
+            <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--o)", opacity: 0.3, display: "inline-block" }} />
+          </span>
+        ))}
+        {ANIME_TITLES.map((t, i) => (
+          <span key={`second-${i}`} style={{ display: "inline-flex", alignItems: "center", gap: 10, fontFamily: "var(--f-display)", fontSize: 20, letterSpacing: 2, color: "var(--dim)" }}>
             <b style={{ color: "var(--o)", fontWeight: 400 }}>{t}</b>
             <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--o)", opacity: 0.3, display: "inline-block" }} />
           </span>

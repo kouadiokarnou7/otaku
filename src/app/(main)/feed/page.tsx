@@ -100,10 +100,20 @@ export default function FeedPage() {
           </div>
         )}
 
-        {/* Composer modal */}
-        {showComposer && profile && (
+        {/* Composer modal — s'ouvre dès que l'user est connu, profil en fallback */}
+        {showComposer && user && (
           <PostComposer
-            user={profile}
+            user={profile ?? {
+              uid: user.uid,
+              username: user.displayName || user.email || "Nakama",
+              displayName: user.displayName || user.email || "Nakama",
+              email: user.email || "",
+              photoURL: user.photoURL || null,
+              bio: "",
+              phone: "",
+              createdAt: null,
+              stats: { animesCount:0, followersCount:0, followingCount:0, postsCount:0 },
+            }}
             onSubmit={handleCreatePost}
             onCancel={() => setShowComposer(false)}
           />
@@ -119,9 +129,7 @@ export default function FeedPage() {
       </div>
 
       {/* FAB — visible uniquement sur mobile */}
-      <div onClick={() => setShowComposer(true)} className="py-4">
-        <PublishFAB />
-      </div>
+      <PublishFAB onClick={() => setShowComposer(true)} />
     </>
   );
 }

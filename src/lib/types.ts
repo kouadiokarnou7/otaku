@@ -151,7 +151,7 @@ export interface Post {
   id: string;
   uid: string;
   username: string;
-  userAvatar: string | null;
+  photoURL: string | null;
   userLevel?: number;        // Pour affichage gamifié
   userBadge?: string;        // Badge icon rapide
   

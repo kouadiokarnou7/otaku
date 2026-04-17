@@ -3,6 +3,7 @@
 
 import { User } from "lucide-react";
 import { useAuth } from "@/lib/hooks/store/auth/useauth";
+import Image from "next/image";
 
 export default function DynamicProfileIcon() {
   const { user, isInitializing } = useAuth();
@@ -25,9 +26,12 @@ export default function DynamicProfileIcon() {
   const hasPhoto = !!user.photoURL;
 
   return hasPhoto ? (
-    <img
+    <Image
       src={user.photoURL}
       alt="Avatar"
+      width={32}
+      height={32}
+      priority
       className="w-8 h-8 rounded-full object-cover border-2 border-transparent hover:border-orange-500 transition-all"
     />
   ) : (

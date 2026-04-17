@@ -36,7 +36,7 @@ export default function MobileHeader({ notifCount = 0 }: MobileHeaderProps) {
         href="/feed"
         style={{ display:"flex", alignItems:"center", gap:7, textDecoration:"none" }}
       >
-        <Image src={logo} alt="Logo" width={22} height={22} />
+        <Image src={logo} alt="Logo" width={22} height={22} style={{ width: 'auto', height: 'auto' }} />
         
       </Link>
 

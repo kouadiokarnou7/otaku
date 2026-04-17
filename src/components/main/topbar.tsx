@@ -43,10 +43,13 @@ function ProfileAvatar() {
   // 4. Affichage : Photo (Google) ou Initiales (Email)
   if (user.photoURL) {
     return (
-      <img
+      <Image
         src={user.photoURL}
         alt="Avatar"
-        style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
+        style={{ borderRadius: "50%", objectFit: "cover" }}
+        priority
+        width={32}
+        height={32}
       />
     );
   }
@@ -93,7 +96,7 @@ export default function TopBar({ notifCount = 0 }: TopBarProps) {
         whileTap={{ scale: 0.97 }}
         style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", flexShrink: 0 }}
       >
-        <Image src={logo} alt="Logo" width={100} height={42} priority />
+        <Image src={logo} alt="Logo" width={100} height={42} priority style={{ width: 'auto', height: 'auto' }} />
       </MotionLink>
 
       {/* ── Liens nav centrés ── */}

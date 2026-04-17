@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { NAV_ITEMS } from "./navConstants";
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 export default function BottomBar() {
   const pathname = usePathname();

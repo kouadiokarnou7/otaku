@@ -78,7 +78,7 @@ export default function Header() {
             className="flex items-center gap-3 cursor-pointer z-20"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           >
-            <Image src={logo} alt="Otaku 225 Logo" width={120} height={50} className="object-contain" priority />
+            <Image src={logo} alt="Otaku 225 Logo" width={120} height={50} className="object-contain" priority style={{ width: 'auto', height: 'auto' }} />
           </motion.div>
 
           {/* 2. LIENS CENTRÉS AVEC INDICATEUR ACTIF */}

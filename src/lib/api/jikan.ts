@@ -3,7 +3,9 @@
  * Documentation: https://jikan.moe/api
  */
 
-const JIKAN_BASE_URL = "https://api.jikan.moe/v4";
+const JIKAN_BASE_URL = process.env.NEXT_PUBLIC_API_JIKAN;
+console.log(JIKAN_BASE_URL);
+
 
 // Types pour les réponses Jikan
 export interface JikanAnime {
