@@ -8,7 +8,7 @@ import Link from "next/link";
 export default function Gallery() {
   const [isHovered, setIsHovered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const MotionLink= motion(Link);
+  const MotionLink = motion.create(Link);
   
   // On duplique les items pour créer une boucle infinie sans "coupure"
   const galleryItems = [...GALLERY_ITEMS, ...GALLERY_ITEMS];

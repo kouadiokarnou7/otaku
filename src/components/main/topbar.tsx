@@ -9,8 +9,8 @@ import logo from "@/assets/logo.png";
 import Image from "next/image";
 import { useAuth } from "@/lib/hooks/store/auth/useauth"; 
 
-// motion(Link) — on anime directement le lien
-const MotionLink = motion(Link);
+// motion.create(Link) — on anime directement le lien (nouvelle API)
+const MotionLink = motion.create(Link);
 
 interface TopBarProps {
   notifCount?: number;

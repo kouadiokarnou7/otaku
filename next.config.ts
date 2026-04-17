@@ -22,10 +22,10 @@ const nextConfig: NextConfig = {
     formats: ['image/webp', 'image/avif'], // 🎯 Optimisation automatique
     minimumCacheTTL: 60, // ⏱️ Cache 60s minimum pour les images externes
   },
-  // Tu peux ajouter d'autres configs ici si besoin
+  // Configuration pour les origines de développement
+  experimental: {
+    allowedDevOrigins: ['192.168.2.3'],
+  },
 };
-module.exports = {
-  allowedDevOrigins: ['192.168.2.3'],
-}
 
 export default nextConfig;

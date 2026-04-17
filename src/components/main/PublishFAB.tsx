@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { PenLine } from "lucide-react";
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 export default function PublishFAB() {
   return (

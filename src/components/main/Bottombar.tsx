@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { NAV_ITEMS } from "./navConstants";
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 export default function BottomBar() {
   const pathname = usePathname();
@@ -64,7 +64,7 @@ export default function BottomBar() {
               />
               {isActive && (
                 <motion.div
-                  layoutId="bottombar-dot"
+                  layoutId={`bottombar-dot-${item.href}`}
                   style={{
                     position:"absolute", bottom:-6, left:"50%",
                     transform:"translateX(-50%)",
