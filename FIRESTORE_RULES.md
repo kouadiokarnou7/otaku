@@ -21,9 +21,16 @@ service cloud.firestore {
         && request.resource.data.metadata.createdAt is timestamp
         && request.resource.data.content is string;
       
+      // Auteur peut modifier tout sauf l'UID
       allow update: if request.auth != null 
         && resource.data.uid == request.auth.uid
         && !('uid' in request.resource.data); // Empêche de changer l'auteur
+      
+      // N'IMPORTE QUI peut mettre à jour les stats (likes, comments, etc)
+      allow update: if request.auth != null 
+        && request.resource.data.keys().hasOnly(['stats', 'metadata']) 
+        && request.resource.data.metadata.keys().hasOnly(['updatedAt'])
+        && resource.data.uid == request.resource.data.uid; // Ne pas changer l'auteur
       
       allow delete: if request.auth != null 
         && resource.data.uid == request.auth.uid;
@@ -98,6 +105,15 @@ service cloud.firestore {
 - ✅ **Validations strictes** : timestamps obligatoires, types de données vérifiés
 - ✅ **Permissions précises** : lecture/écriture/suppression basées sur l'auteur
 - ✅ **Sécurité renforcée** : on vérifie l'authenticité de l'utilisateur
+- ✅ **Stats Update Rule** : N'importe quel utilisateur peut mettre à jour `stats.likes` (pour les likes) sans être auteur du post
+
+### ⚡ FIX APPLIQUÉ (Like Button Error):
+**Problème:** "Missing or insufficient permissions" quand on essaie de liker
+**Raison:** L'update rule demandait que l'utilisateur soit l'auteur du post
+**Solution:** Double règle update:
+- Auteur du post peut modifier n'importe quoi (sauf changer l'UID)
+- N'IMPORTE QUI peut modifier SEULEMENT `stats` et `metadata.updatedAt`
+- L'UID du post ne peut PAS changer (sécurité)
 
 ### Champs à Utiliser dans le Code:
 - Posts: utiliser `uid` (pas `userId`)
