@@ -98,7 +98,7 @@ export default function PostComposer({ user, onSubmit, onCancel }: PostComposerP
             <div className="flex gap-3">
               <div className="relative flex-shrink-0">
                 <Image
-                  src={user.photoURL || "/avatar-placeholder.png"}
+                  src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=random&size=64`}
                   alt={user.displayName}
                   width={44}
                   height={44}

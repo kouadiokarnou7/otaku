@@ -6,6 +6,58 @@
 const JIKAN_BASE_URL = process.env.NEXT_PUBLIC_API_JIKAN;
 console.log(JIKAN_BASE_URL);
 
+// Rate limiting delay (ms)
+const RATE_LIMIT_DELAY = 500;
+let lastRequestTime = 0;
+
+/**
+ * Respecter le rate limit du Jikan API
+ */
+async function applyRateLimit() {
+  const now = Date.now();
+  const timeSinceLastRequest = now - lastRequestTime;
+  
+  if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
+    await new Promise(resolve => 
+      setTimeout(resolve, RATE_LIMIT_DELAY - timeSinceLastRequest)
+    );
+  }
+  
+  lastRequestTime = Date.now();
+}
+
+/**
+ * Retry avec backoff exponentiel pour les erreurs 429
+ */
+async function fetchWithRetry(
+  url: string,
+  maxRetries = 3,
+  retryDelay = 1000
+): Promise<Response> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      await applyRateLimit();
+      const response = await fetch(url);
+      
+      // Si 429 et on a d'autres tentatives, attendre et réessayer
+      if (response.status === 429 && attempt < maxRetries - 1) {
+        const waitTime = retryDelay * Math.pow(2, attempt);
+        console.log(`⏳ Rate limited. Attente ${waitTime}ms avant retry...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        continue;
+      }
+      
+      return response;
+    } catch (error) {
+      if (attempt === maxRetries - 1) throw error;
+      const waitTime = retryDelay * Math.pow(2, attempt);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+  
+  throw new Error('Dépassement du nombre de tentatives');
+}
+
 
 // Types pour les réponses Jikan
 export interface JikanAnime {
@@ -82,13 +134,12 @@ export async function searchAnime(
 ): Promise<JikanSearchResponse> {
   try {
     const encodedQuery = encodeURIComponent(query);
-    const response = await fetch(
+    const response = await fetchWithRetry(
       `${JIKAN_BASE_URL}/anime?q=${encodedQuery}&page=${page}&limit=${limit}`
     );
 
     if (!response.ok) {
       throw new Error(`Erreur Jikan: ${response.status}`);
-      console.error("❌ Erreur recherche anime:", response.statusText);
     }
 
     const data = await response.json();
@@ -104,7 +155,7 @@ export async function searchAnime(
  */
 export async function getAnimeById(id: number): Promise<JikanAnime> {
   try {
-    const response = await fetch(`${JIKAN_BASE_URL}/anime/${id}`);
+    const response = await fetchWithRetry(`${JIKAN_BASE_URL}/anime/${id}`);
 
     if (!response.ok) {
       throw new Error(`Erreur Jikan: ${response.status}`);
@@ -128,7 +179,7 @@ export async function getTopAnimes(
 ): Promise<JikanSearchResponse> {
   try {
     const filterParam = filter !== "all" ? `&filter=${filter}` : "";
-    const response = await fetch(
+    const response = await fetchWithRetry(
       `${JIKAN_BASE_URL}/top/anime?page=${page}&limit=${limit}${filterParam}`
     );
 
@@ -149,7 +200,7 @@ export async function getTopAnimes(
  */
 export async function getAnimeCharacters(id: number): Promise<JikanCharacter[]> {
   try {
-    const response = await fetch(`${JIKAN_BASE_URL}/anime/${id}/characters`);
+    const response = await fetchWithRetry(`${JIKAN_BASE_URL}/anime/${id}/characters`);
 
     if (!response.ok) {
       throw new Error(`Erreur Jikan: ${response.status}`);
@@ -168,7 +219,7 @@ export async function getAnimeCharacters(id: number): Promise<JikanCharacter[]> 
  */
 export async function getCurrentSeasonAnimes(): Promise<JikanSearchResponse> {
   try {
-    const response = await fetch(`${JIKAN_BASE_URL}/seasons/now?limit=25`);
+    const response = await fetchWithRetry(`${JIKAN_BASE_URL}/seasons/now?limit=25`);
 
     if (!response.ok) {
       throw new Error(`Erreur Jikan: ${response.status}`);

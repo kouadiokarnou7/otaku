@@ -35,7 +35,7 @@ export default function PostCard({ post, onLike }: PostCardProps) {
       <div className="relative z-10 flex items-center gap-4 px-5 pt-5 pb-2">
         <div className="relative flex-shrink-0">
           <Image
-            src={post.photoURL || "/avatar-placeholder.png"}
+            src={post.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.username || 'User')}&background=random&size=40`}
             alt={post.username}
             className="w-11 h-11 rounded-full border-2 border-orange-500/40 flex-shrink-0 ring-2 ring-orange-500/10"
             width={44}

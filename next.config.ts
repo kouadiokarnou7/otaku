@@ -27,7 +27,10 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60,
   },
 
-  allowedDevOrigins: ['192.168.2.5'], // ✅ fusion ici
+  allowedDevOrigins: [
+    '192.168.2.5',
+    '*.ngrok-free.app', // ✅ Autorise tous les sous-domaines ngrok
+  ],// ✅ fusion ici
 };
 
 export default nextConfig;

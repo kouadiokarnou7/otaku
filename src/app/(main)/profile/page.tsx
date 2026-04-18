@@ -41,7 +41,7 @@ export default function ProfilePage() {
   if (!user || !profile) return null;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white relative selection:bg-orange-500">
+    <div className="sticky top-0 z-20 bg-[#0a0e27]/95 backdrop-blur border-b border-[#1e2540] px-4 py-3">
       
       
 
@@ -97,10 +97,8 @@ export default function ProfilePage() {
           </div>
         
 
-        {/* Footer */}
-        <p className="text-center text-[10px] text-zinc-600 mt-20 uppercase tracking-[0.3em]">
-          Otaku Social — Espace Personnel
-        </p>
+        
+      
       
     </div>
   );
