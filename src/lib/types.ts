@@ -130,6 +130,26 @@ export interface ProfileFormData {
   bio: string;
   phone: string;
 }
+
+// ── AUTH TYPES ───────────────────────────────────────────────
+export interface RegisterFormData {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  avatar?: string;
+}
+
+export interface LoginFormData {
+  identifier: string; // email ou username
+  password: string;
+  rememberMe?: boolean;
+}
+
+export interface FirebaseAuthError extends Error {
+  code?: string;
+  message: string;
+}
  
 export interface FeedbackMessage {
   type: "success" | "error" | "";

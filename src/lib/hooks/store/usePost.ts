@@ -7,10 +7,15 @@ import {
   orderBy, 
   limit,
   serverTimestamp,
-  where
+  where,
+  doc,
+  updateDoc,
+  deleteDoc,
+  getDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebaseconfig";
-import type { Post } from "@/lib/types"; // ✅ ComposerState retiré car inutilisé
+import type { Post } from "@/lib/types";
 
 /**
  * Hook personnalisé pour gérer les posts
@@ -100,7 +105,6 @@ export const usePost = (uid: string | undefined) => {
     }
   }, [uid]);
 
-  // ── Récupérer le feed ─────────────────────────────────────
   const fetchFeed = useCallback(async (limitCount: number = 20) => {
     setLoading(true);
     setError(null);
@@ -135,13 +139,83 @@ export const usePost = (uid: string | undefined) => {
     }
   }, []);
 
+  // ── Mettre en place un listener en temps réel pour les posts ─────
   useEffect(() => {
-    fetchFeed();
-  }, [fetchFeed]);
+    const postsQuery = query(
+      collection(db, "posts"),
+      orderBy("metadata.createdAt", "desc"),
+      limit(20)
+    );
+
+    const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
+      const updatedPosts: Post[] = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        metadata: {
+          ...doc.data().metadata,
+          createdAt: doc.data().metadata?.createdAt?.toDate() || new Date(),
+        },
+      } as Post));
+
+      setPosts(updatedPosts);
+    }, (error) => {
+      console.error("❌ Erreur listener posts:", error);
+      setError(getErrorMessage(error));
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const toggleLike = useCallback(async (postId: string) => {
-    console.log("Toggle like:", postId);
-  }, []);
+    if (!uid) throw new Error("Utilisateur non connecté");
+
+    try {
+      const likesRef = collection(db, "posts", postId, "likes");
+      const likeQuery = query(likesRef, where("uid", "==", uid));
+      const likeSnap = await getDocs(likeQuery);
+
+      const postRef = doc(db, "posts", postId);
+      const postSnap = await getDoc(postRef);
+      
+      if (!postSnap.exists()) {
+        throw new Error("Post introuvable");
+      }
+
+      const currentLikes = postSnap.data().stats?.likes || 0;
+
+      if (!likeSnap.empty) {
+        // ❤️ Unlike : supprimer le like
+        const likeDoc = likeSnap.docs[0];
+        await deleteDoc(doc(db, "posts", postId, "likes", likeDoc.id));
+        
+        // Décrémenter le compteur
+        await updateDoc(postRef, {
+          "stats.likes": Math.max(0, currentLikes - 1),
+        });
+
+        console.log("✅ Like supprimé");
+      } else {
+        // ❤️ Like : ajouter le like
+        await addDoc(likesRef, {
+          uid,
+          createdAt: serverTimestamp(),
+        });
+
+        // Incrémenter le compteur
+        await updateDoc(postRef, {
+          "stats.likes": currentLikes + 1,
+        });
+
+        console.log("✅ Like ajouté");
+      }
+
+      // Le listener en temps réel va rafraîchir les posts automatiquement
+    } catch (err: unknown) {
+      console.error("❌ Erreur toggle like:", err);
+      setError(getErrorMessage(err));
+      throw err;
+    }
+  }, [uid]);
 
   const addComment = useCallback(async (
     postId: string,

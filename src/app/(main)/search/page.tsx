@@ -284,7 +284,7 @@ export default function SearchPage() {
                 </button>
               </div>
 
-              <div className="grid gap-3 sm:gap-6 md:grid-cols-2">
+              <div className="grid gap-3 sm:gap-6 lg:grid-cols-3">
                 {currentResults.map((anime) => (
                   <SearchResultCard key={anime.mal_id} anime={anime} />
                 ))}

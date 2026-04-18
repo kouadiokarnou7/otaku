@@ -7,12 +7,14 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   updateProfile,
+
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase/firebaseconfig";
 import { generateAvatar } from "@/lib/utils";
 import { registerSchema } from "@/lib/validators";
+import type { RegisterFormData } from "@/lib/types";
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -35,7 +37,7 @@ export function useRegister() {
   const [error, setError] = useState<string | null>(null);
 
   // 🔐 INSCRIPTION EMAIL/PASSWORD
-  const registerdata = useCallback(async (data: any) => {
+  const registerdata = useCallback(async (data: RegisterFormData) => {
     setLoading(true);
     setError(null);
 
@@ -74,14 +76,15 @@ export function useRegister() {
       router.push("/feed");
       return user;
 
-    } catch (err: any) {
+    } catch (err) {
       // Messages d'erreur plus clairs
-      let message = err.message || "Erreur lors de l'inscription";
-      if (err.code === "auth/email-already-in-use") {
+      const firebaseErr = err as { code?: string; message: string };
+      let message = firebaseErr.message || "Erreur lors de l'inscription";
+      if (firebaseErr.code === "auth/email-already-in-use") {
         message = "Cet email est déjà utilisé";
-      } else if (err.code === "auth/weak-password") {
+      } else if (firebaseErr.code === "auth/weak-password") {
         message = "Mot de passe trop faible (min. 6 caractères)";
-      } else if (err.code === "permission-denied") {
+      } else if (firebaseErr.code === "permission-denied") {
         message = "Erreur de permissions Firestore. Vérifie tes règles.";
       }
       setError(message);
@@ -125,9 +128,10 @@ export function useRegister() {
       router.push("/feed");
       return user;
 
-    } catch (err: any) {
-      if (err.code !== "auth/popup-closed-by-user") {
-        setError(err.message || "Échec connexion Google");
+    } catch (err) {
+      const firebaseErr = err as { code?: string; message: string };
+      if (firebaseErr.code !== "auth/popup-closed-by-user") {
+        setError(firebaseErr.message || "Échec connexion Google");
         throw err;
       }
     } finally {

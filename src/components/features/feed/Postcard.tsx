@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import type { Post } from "@/lib/types";
 import Image from "next/image";
 
@@ -50,9 +51,9 @@ export default function PostCard({ post, onLike }: PostCardProps) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-bold text-white text-sm hover:text-orange-400 transition-colors cursor-pointer">
+            <Link href={`/profile/${post.uid}`} className="font-bold text-white text-sm hover:text-orange-400 transition-colors cursor-pointer">
               {post.username}
-            </span>
+            </Link>
             {post.userBadge && (
               <span className="text-xs px-2.5 py-1 bg-gradient-to-r from-orange-500/20 to-orange-600/20 rounded-full text-orange-300 border border-orange-500/30 font-medium">
                 {post.userBadge}
