@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import type { Post } from "@/lib/types";
 import Image from "next/image";
-
+import { useAuth } from "@/lib/hooks/store/auth/useauth";
 
 import PostActions from "@/components/features/feed/PostActions";
 
@@ -20,7 +20,7 @@ export default function PostCard({ post, onLike }: PostCardProps) {
     if (sec < 86400) return `Il y a ${Math.floor(sec / 3600)}h`;
     return `Il y a ${Math.floor(sec / 86400)}j`;
   };
-  const { user } = useauth();
+  const { user } = useAuth();
 
   return (
     <motion.article

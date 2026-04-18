@@ -3,7 +3,7 @@
 
 import type { Post, UserProfile } from "@/lib/types";
 
-import PostCard from "@/components/features/feed/PostCard";
+import PostCard from "./Postcard";
 
 interface FeedListProps {
   posts: Post[];
