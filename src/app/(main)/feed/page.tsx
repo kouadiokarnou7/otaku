@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Post, UserProfile } from "@/lib/types";
 import { useAuth } from "@/lib/hooks/store/auth/useauth";
 import { usePost } from "@/lib/hooks/store/usePost";
 import { useProfile } from "@/lib/hooks/store/useProfile";
@@ -16,14 +15,13 @@ export default function FeedPage() {
   const { posts, loading, error, createPost, fetchFeed, toggleLike } = usePost(user?.uid);
   
   const [showComposer, setShowComposer] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Rafraîchir le feed au montage
   useEffect(() => {
     if (user?.uid) {
       fetchFeed();
     }
-  }, [user?.uid]);
+  }, [user?.uid, fetchFeed]);
 
   const handleCreatePost = async (content: string, mediaUrl?: string) => {
     if (!user) return;
@@ -112,7 +110,7 @@ export default function FeedPage() {
               bio: "",
               phone: "",
               createdAt: null,
-              stats: { animesCount:0, followersCount:0, followingCount:0, postsCount:0 },
+              stats: { animesCount: 0, postsCount: 0, gamesCount: 0, xp: 0, level: 1, rank: 0, badge: null },
             }}
             onSubmit={handleCreatePost}
             onCancel={() => setShowComposer(false)}
@@ -122,7 +120,6 @@ export default function FeedPage() {
         {/* Liste des posts */}
         <FeedList
           posts={posts}
-          currentUser={profile!}
           onLike={handleLike}
           emptyMessage={loading ? "Chargement des posts..." : "Aucun post pour le moment 🎮\nSois le premier à poster !"}
         />

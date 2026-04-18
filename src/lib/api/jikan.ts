@@ -88,6 +88,7 @@ export async function searchAnime(
 
     if (!response.ok) {
       throw new Error(`Erreur Jikan: ${response.status}`);
+      console.error("❌ Erreur recherche anime:", response.statusText);
     }
 
     const data = await response.json();

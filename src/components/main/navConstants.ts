@@ -1,13 +1,14 @@
 // src/components/main/navConstants.ts
 import { Home, User, Gamepad2, Bell, Search } from "lucide-react";
-import type { ComponentType, ReactNode } from "react";
+import type { ComponentType, SVGProps } from "react";
+import type { LucideIcon } from "lucide-react";
 import DynamicProfileIcon from "./DynamicProfileIcon";
 
 export interface NavItem {
   label: string;
   href: string;
-  // 🔹 Accepte : icône Lucide OU composant personnalisé OU élément React
-  icon: ComponentType<any> ;
+  // 🔹 Accepte : icône Lucide OU composant personnalisé
+  icon: LucideIcon | ComponentType<SVGProps<SVGSVGElement>> ;
   badge?: boolean;
 }
 

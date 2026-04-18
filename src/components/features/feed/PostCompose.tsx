@@ -77,36 +77,39 @@ export default function PostComposer({ user, onSubmit, onCancel }: PostComposerP
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="pointer-events-auto w-full md:max-w-lg bg-[#0a0e27] border-t-2 md:border border-[#1e2540] rounded-t-3xl md:rounded-2xl shadow-2xl"
+          className="pointer-events-auto w-full md:max-w-lg bg-gradient-to-br from-[#0a0e27] via-[#0f1430] to-[#1a1f3a] border-t-2 md:border border-orange-500/20 rounded-t-3xl md:rounded-2xl shadow-2xl shadow-orange-500/10"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Handle pour mobile (la petite barre de traction) */}
           <div className="flex justify-center pt-3 md:hidden">
-            <div className="w-10 h-1 bg-gray-600 rounded-full" />
+            <div className="w-10 h-1 bg-orange-500/30 rounded-full" />
           </div>
 
           <div className="p-4 md:p-6">
             {/* Header Optionnel (fermeture sur desktop) */}
             <div className="hidden md:flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-white">Nouveau Post</h2>
-              <button onClick={onCancel} className="text-gray-500 hover:text-white transition">
+              <h2 className="text-lg font-bold text-white">📝 Créer un post</h2>
+              <button onClick={onCancel} className="text-gray-500 hover:text-orange-400 transition">
                 <X size={20} />
               </button>
             </div>
 
             {/* Contenu du formulaire */}
             <div className="flex gap-3">
-              <Image
-                src={user.photoURL || "/avatar-placeholder.png"}
-                alt={user.displayName}
-                width={40}
-                height={40}
-                className="rounded-full border border-[#2D3748] self-start"
-              />
+              <div className="relative flex-shrink-0">
+                <Image
+                  src={user.photoURL || "/avatar-placeholder.png"}
+                  alt={user.displayName}
+                  width={44}
+                  height={44}
+                  className="rounded-full border-2 border-orange-500/40 ring-2 ring-orange-500/10"
+                />
+              </div>
               <div className="flex-1">
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
+                  placeholder="Partage ta passion pour l'anime... ✨"
                   rows={3}
                   className="w-full bg-transparent text-white placeholder-gray-500 text-sm resize-none focus:outline-none"
                   autoFocus
@@ -117,9 +120,9 @@ export default function PostComposer({ user, onSubmit, onCancel }: PostComposerP
                     <Image
                       src={preview}
                       alt="Preview"
-                      width={20}
-                      height={20}
-                      className="max-h-40 rounded-lg border border-[#2D3748]"
+                      width={200}
+                      height={160}
+                      className="max-h-40 rounded-lg border-2 border-orange-500/30"
                     />
                     <button
                       type="button"
@@ -131,26 +134,37 @@ export default function PostComposer({ user, onSubmit, onCancel }: PostComposerP
                   </div>
                 )}
 
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#1e2540]">
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-orange-500/10">
                   <div className="flex gap-2">
                     <label className="cursor-pointer p-2 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10 rounded-full transition">
                       <ImageIcon size={20} />
                       <input type="file" accept="image/*" onChange={handleImage} className="hidden" />
                     </label>
-                    {/* Ajouter d'autres boutons (GIF, Emoji) ici */}
                   </div>
                   
                   <motion.button
                     whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.05 }}
                     onClick={handleSubmit}
                     disabled={loading || (!content.trim() && !preview)}
                     className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white
-                             bg-gradient-to-r from-orange-500 to-red-600 
-                             hover:from-orange-400 hover:to-red-500
+                             bg-gradient-to-r from-orange-500 to-orange-600 
+                             hover:from-orange-600 hover:to-orange-700
                              disabled:opacity-50 disabled:cursor-not-allowed
-                             shadow-[0_4px_15px_rgba(255,107,26,0.4)]"
+                             disabled:bg-gray-500
+                             shadow-[0_4px_15px_rgba(255,107,26,0.4)]
+                             transition-all duration-200"
                   >
-                    {loading ? "Envoi..." : <><Send size={16} /> Publier</>}
+                    {loading ? (
+                      <>
+                        <span className="animate-spin">⌛</span>
+                        Envoi...
+                      </>
+                    ) : (
+                      <>
+                        <Send size={16} /> Publier
+                      </>
+                    )}
                   </motion.button>
                 </div>
               </div>

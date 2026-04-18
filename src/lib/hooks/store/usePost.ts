@@ -49,18 +49,18 @@ export const usePost = (uid: string | undefined) => {
       );
       
       let username = "Anonymous";
-      let userAvatar = null;
+      let photoURL = null;
       
       if (!userSnap.empty) {
         const userData = userSnap.docs[0].data();
         username = userData.username || userData.displayName || "Anonymous";
-        userAvatar = userData.photoURL || null;
+        photoURL = userData.photoURL || null;
       }
 
       const postData: Omit<Post, "id"> = {
         uid,
         username,
-        userAvatar,
+        photoURL,
         userLevel: 1,
         userBadge: "starter",
         content,

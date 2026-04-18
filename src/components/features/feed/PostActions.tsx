@@ -2,10 +2,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
+import { Heart, MessageCircle, Repeat2, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Post } from "@/lib/types";
-import  Button  from "@/components/ui/button";
 
 interface PostActionsProps {
   post: Post;
@@ -13,15 +12,20 @@ interface PostActionsProps {
 }
 
 export default function PostActions({ post, onLike }: PostActionsProps) {
+  const actionClass = "flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium";
+  
   return (
-    <div className="flex items-center justify-around px-4 py-3 border-t border-[#1e2540]">
+    <div className="flex items-center justify-between gap-2">
       {/* Like */}
       <motion.button
         whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.05 }}
         onClick={onLike}
         className={cn(
-          "flex items-center gap-1.5 text-sm transition-colors",
-          post.likedByUser ? "text-red-400" : "text-gray-400 hover:text-red-400"
+          actionClass,
+          post.likedByUser 
+            ? "text-red-400 bg-red-500/10 border border-red-500/30 hover:border-red-500/50 hover:bg-red-500/20" 
+            : "text-gray-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20"
         )}
       >
         <Heart 
@@ -32,22 +36,43 @@ export default function PostActions({ post, onLike }: PostActionsProps) {
       </motion.button>
 
       {/* Comment */}
-      <Button className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-orange-400 transition-colors">
+      <motion.button
+        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.05 }}
+        className={cn(
+          actionClass,
+          "text-gray-400 hover:text-orange-400 hover:bg-orange-500/10 border border-transparent hover:border-orange-500/20"
+        )}
+      >
         <MessageCircle size={18} />
         <span>{post.stats.comments}</span>
-      </Button>
+      </motion.button>
 
       {/* Share */}
-      <Button className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-orange-400 transition-colors">
-        <Share2 size={18} />
+      <motion.button
+        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.05 }}
+        className={cn(
+          actionClass,
+          "text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 border border-transparent hover:border-purple-500/20"
+        )}
+      >
+        <Repeat2 size={18} />
         <span className="hidden sm:inline">Partager</span>
-      </Button>
+      </motion.button>
+
       {/* Save */}
-      <Button className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-orange-400 transition-colors">
+      <motion.button
+        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.05 }}
+        className={cn(
+          actionClass,
+          "text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20"
+        )}
+      >
         <Bookmark size={18} />
-        <span className="hidden sm:inline">Enregistrer</span>
-       
-      </Button>
+        <span className="hidden sm:inline">Marquer</span>
+      </motion.button>
     </div>
   );
 }
