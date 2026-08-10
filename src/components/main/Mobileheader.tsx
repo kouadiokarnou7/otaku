@@ -1,16 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Swords } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { motion } from "framer-motion";
 import logo from "@/assets/logo.png";
 import Image from "next/image";
 
 interface MobileHeaderProps {
   notifCount?: number;
+  onMenuToggle?: () => void;
 }
 
-export default function MobileHeader({ notifCount = 0 }: MobileHeaderProps) {
+export default function MobileHeader({ notifCount = 0, onMenuToggle }: MobileHeaderProps) {
   return (
     <header
       style={{
@@ -24,21 +25,32 @@ export default function MobileHeader({ notifCount = 0 }: MobileHeaderProps) {
         alignItems:     "center",
         justifyContent: "space-between",
         padding:        "0 16px",
-        background:     "rgba(5,5,8,0.85)",
-        backdropFilter: "blur(16px)",
+        background:     "rgba(5,5,8,0.95)",
+        backdropFilter: "blur(20px)",
         borderBottom:   "1px solid rgba(255,255,255,0.06)",
       }}
-      /* Visible uniquement sur mobile */
       className="md:hidden"
     >
+      
       {/* Logo */}
-      <Link
-        href="/feed"
-        style={{ display:"flex", alignItems:"center", gap:7, textDecoration:"none" }}
-      >
-        <Image src={logo} alt="Logo" width={22} height={22} style={{ width: 'auto', height: 'auto' }} />
-        
-      </Link>
+     {/* Logo à gauche */}
+  <Link
+    href="/feed"
+    style={{
+      display: "flex",
+      alignItems: "center",
+      textDecoration: "none"
+    }}
+  >
+    <Image
+      src={logo}
+      alt="Logo"
+      width={80}
+      height={35}
+      priority
+      style={{ width: "auto", height: "auto" }}
+    />
+  </Link>
 
       {/* Cloche notifications */}
       <Link href="/notifications" style={{ position:"relative", textDecoration:"none" }}>

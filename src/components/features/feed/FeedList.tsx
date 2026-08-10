@@ -34,7 +34,7 @@ export default function FeedList({
 
   return (
     <motion.div 
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-4 pd-x-4 pd-y-6 pd-sm-x-6 pd-sm-y-8w"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >

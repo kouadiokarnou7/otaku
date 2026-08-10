@@ -4,7 +4,7 @@
  */
 
 const JIKAN_BASE_URL = process.env.NEXT_PUBLIC_API_JIKAN;
-console.log(JIKAN_BASE_URL);
+
 
 // Rate limiting delay (ms)
 const RATE_LIMIT_DELAY = 500;
