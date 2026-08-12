@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Star, Plus } from "lucide-react";
-import "next/image";
+import Image from "next/image";
 
 interface AnimeCardProps {
   id: number;
@@ -30,10 +30,12 @@ export default function AnimeCard({
     >
       {/* Image */}
       <div className="relative h-72 overflow-hidden bg-slate-900">
-        <image
+        <Image
           src={image}
           alt={title}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          fill
+          sizes="(max-width: 768px) 50vw, 25vw"
+          className="object-cover group-hover:scale-110 transition-transform duration-300"
         />
         
         {/* Overlay gradient */}

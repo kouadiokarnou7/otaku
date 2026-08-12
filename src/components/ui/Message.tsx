@@ -2,7 +2,7 @@
 // components/ui/Message.tsx — Message de feedback animé
 // ============================================================
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { FeedbackMessage } from "@/lib/types";
 
@@ -31,6 +31,10 @@ const config = {
 export default function Message({ message, autoDismiss = 4000, onDismiss }: MessageProps) {
   const [visible, setVisible] = useState(false);
 
+  // Timer de l'animation de sortie : suivi dans une ref pour pouvoir
+  // l'annuler au démontage, sinon onDismiss peut être appelé après.
+  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     if (!message.text) {
       setVisible(false);
@@ -39,17 +43,19 @@ export default function Message({ message, autoDismiss = 4000, onDismiss }: Mess
     // Petit délai pour déclencher l'animation d'entrée
     const showTimer = setTimeout(() => setVisible(true), 50);
 
+    let hideTimer: ReturnType<typeof setTimeout> | undefined;
     if (autoDismiss > 0) {
-      const hideTimer = setTimeout(() => {
+      hideTimer = setTimeout(() => {
         setVisible(false);
-        setTimeout(() => onDismiss?.(), 300);
+        dismissTimerRef.current = setTimeout(() => onDismiss?.(), 300);
       }, autoDismiss);
-      return () => {
-        clearTimeout(showTimer);
-        clearTimeout(hideTimer);
-      };
     }
-    return () => clearTimeout(showTimer);
+
+    return () => {
+      clearTimeout(showTimer);
+      if (hideTimer) clearTimeout(hideTimer);
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+    };
   }, [message, autoDismiss, onDismiss]);
 
   if (!message.text || message.type === "") return null;

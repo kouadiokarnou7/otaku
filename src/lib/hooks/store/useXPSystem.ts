@@ -9,7 +9,9 @@ export interface XPReward {
   message: string;
 }
 
-const XP_REWARDS: Record<string, number> = {
+// Typé sur l'union de XPReward["type"] : sans ça, `keyof typeof XP_REWARDS`
+// vaut `string` et ne peut pas alimenter le champ `type` de XPReward.
+const XP_REWARDS: Record<XPReward["type"], number> = {
   post: 100,
   like: 5,
   comment: 15,

@@ -6,11 +6,18 @@ import { motion } from "framer-motion";
 import { NAV_ITEMS } from "./navConstants";
 
 interface SidebarProps {
+  /** Force l'affichage réduit aux icônes (72px) */
   iconOnly?: boolean;
+  /** Sidebar déployée (240px) ou réduite (72px) — inverse de iconOnly */
+  isExpanded?: boolean;
+  /** Bascule de l'état, déclenchée depuis AppLayout. Pas encore câblée. */
+  onToggle?: () => void;
 }
 
-export default function Sidebar({ iconOnly = false }: SidebarProps) {
+export default function Sidebar({ iconOnly: iconOnlyProp, isExpanded = true }: SidebarProps) {
   const pathname = usePathname();
+  // iconOnly explicite prioritaire, sinon on le déduit de isExpanded
+  const iconOnly = iconOnlyProp ?? !isExpanded;
   const width    = iconOnly ? 72 : 240;
 
   return (

@@ -5,8 +5,8 @@
 import { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils"; // twMerge helper (voir note bas)
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
-type Size = "sm" | "md" | "lg";
+export type Variant = "primary" | "secondary" | "ghost" | "danger";
+export type Size = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
@@ -45,6 +45,29 @@ const sizeStyles: Record<Size, string> = {
   lg: "text-base px-6 py-4 rounded-xl min-h-[56px]",
 };
 
+/**
+ * Classes de style du bouton, applicables à un élément autre que <button>.
+ * Nécessaire pour les primitives Radix (AlertDialog) : les imbriquer dans
+ * un <button> produirait un bouton dans un bouton, donc du HTML invalide.
+ */
+export const buttonClasses = (
+  variant: Variant = "primary",
+  size: Size = "md",
+  fullWidth = false
+) =>
+  cn(
+    // Base
+    "relative inline-flex items-center justify-center gap-2",
+    "font-semibold tracking-wide",
+    "transition-all duration-200 ease-out",
+    "cursor-pointer select-none",
+    "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
+    // Variant & size
+    variantStyles[variant],
+    sizeStyles[size],
+    fullWidth && "w-full"
+  );
+
 export default function Button({
   variant = "primary",
   size = "md",
@@ -58,19 +81,7 @@ export default function Button({
   return (
     <button
       disabled={disabled || isLoading}
-      className={cn(
-        // Base
-        "relative inline-flex items-center justify-center gap-2",
-        "font-semibold tracking-wide",
-        "transition-all duration-200 ease-out",
-        "cursor-pointer select-none",
-        "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
-        // Variant & size
-        variantStyles[variant],
-        sizeStyles[size],
-        fullWidth && "w-full",
-        className
-      )}
+      className={cn(buttonClasses(variant, size, fullWidth), className)}
       {...props}
     >
       {isLoading ? (
@@ -84,3 +95,8 @@ export default function Button({
     </button>
   );
 }
+
+// Les deux styles d'import coexistent dans le projet :
+// `import Button from ...` (InputField, ProfileHeader) et
+// `import { Button } from ...` (carousel, alert-dialog).
+export { Button };

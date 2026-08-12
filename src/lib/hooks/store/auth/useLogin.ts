@@ -6,8 +6,9 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
-  FirebaseError,
 } from "firebase/auth";
+// FirebaseError vient de firebase/app, pas de firebase/auth
+import { FirebaseError } from "firebase/app";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase/firebaseconfig";

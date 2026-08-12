@@ -49,6 +49,8 @@ export function useProfile(uid: string | undefined) {
           photoURL: user?.photoURL || snap.data()?.photoURL || null,
           bio: snap.data()?.bio || "",
           phone: snap.data()?.phone || "",
+          // Défaut prudent : en l'absence de rôle en base, on suppose "user"
+          role: snap.data()?.role === "admin" ? "admin" : "user",
           createdAt: snap.data()?.createdAt?.toDate() || null,
           stats: snap.data()?.stats || DEFAULT_STATS,
         };

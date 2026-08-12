@@ -10,7 +10,7 @@ import Link from "next/link";
 
 export default function SettingsPage() {
   const { user, logout, isInitializing } = useAuth();
-  const { profile, formData, handleChange, saveProfile, loading } = useProfile(user?.uid);
+  const { profile, formData, handleChange, handleSubmit, loading } = useProfile(user?.uid);
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"profile" | "security" | "about">("profile");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -118,7 +118,7 @@ export default function SettingsPage() {
             </div>
           </div>
           <button
-            onClick={() => saveProfile?.()}
+            onClick={(e) => handleSubmit(e)}
             disabled={loading}
             className="w-full mt-4 py-3 bg-primary text-primary-foreground hover:opacity-90 rounded-xl font-bold transition disabled:opacity-50"
           >

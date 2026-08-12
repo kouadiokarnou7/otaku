@@ -109,6 +109,7 @@ export default function FeedPage() {
               photoURL: user.photoURL || null,
               bio: "",
               phone: "",
+              role: "user",
               createdAt: null,
               stats: { animesCount: 0, postsCount: 0, gamesCount: 0, xp: 0, level: 1, rank: 0, badge: null },
             }}

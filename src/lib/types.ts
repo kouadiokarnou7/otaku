@@ -93,6 +93,8 @@ export interface InputFieldProps {
 export interface ProfileStats {
   animesCount: number;
   postsCount: number;
+  followersCount?: number;   // Optionnel : absent des anciens documents Firestore
+  followingCount?: number;   // Optionnel : absent des anciens documents Firestore
   gamesCount: number;        // ✅ Nouveau : suivi des jeux
   xp: number;                // ✅ Points d'expérience pour la progression
   level: number;             // ✅ Niveau calculé depuis l'XP
@@ -105,6 +107,13 @@ export interface ProfileStats {
   } | null;
 }
 
+// ── RÔLES ────────────────────────────────────────────────────
+// ⚠️ Le rôle n'est PAS modifiable par l'utilisateur : les Firestore
+// Security Rules interdisent toute écriture sur ce champ (voir
+// FIRESTORE_RULES.md). La promotion en admin se fait uniquement
+// depuis la console Firebase.
+export type UserRole = "user" | "admin";
+
 export interface UserProfile {
   uid: string;
   username: string;
@@ -113,6 +122,7 @@ export interface UserProfile {
   photoURL: string | null;
   bio: string;
   phone: string;
+  role: UserRole;
   createdAt: Date | null;
   updatedAt?: Date | null;
   stats: ProfileStats;

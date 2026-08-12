@@ -9,9 +9,8 @@ import {
   serverTimestamp,
   where,
   doc,
-  updateDoc,
-  deleteDoc,
-  getDoc,
+  increment,
+  writeBatch,
   onSnapshot,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebaseconfig";
@@ -175,37 +174,27 @@ export const usePost = (uid: string | undefined) => {
       const likeSnap = await getDocs(likeQuery);
 
       const postRef = doc(db, "posts", postId);
-      const postSnap = await getDoc(postRef);
-      
-      if (!postSnap.exists()) {
-        throw new Error("Post introuvable");
-      }
 
-      const currentLikes = postSnap.data().stats?.likes || 0;
+      // Le document de like et le compteur partent dans la même écriture
+      // atomique : impossible d'avoir un like sans compteur, ou l'inverse.
+      const batch = writeBatch(db);
 
       if (!likeSnap.empty) {
-        // ❤️ Unlike : supprimer le like
-        const likeDoc = likeSnap.docs[0];
-        await deleteDoc(doc(db, "posts", postId, "likes", likeDoc.id));
-        
-        // Décrémenter le compteur
-        await updateDoc(postRef, {
-          "stats.likes": Math.max(0, currentLikes - 1),
-        });
+        // ❤️ Unlike : supprimer le like et décrémenter
+        batch.delete(doc(db, "posts", postId, "likes", likeSnap.docs[0].id));
+        batch.update(postRef, { "stats.likes": increment(-1) });
 
+        await batch.commit();
         console.log("✅ Like supprimé");
       } else {
-        // ❤️ Like : ajouter le like
-        await addDoc(likesRef, {
+        // ❤️ Like : ajouter le like et incrémenter
+        batch.set(doc(likesRef), {
           uid,
           createdAt: serverTimestamp(),
         });
+        batch.update(postRef, { "stats.likes": increment(1) });
 
-        // Incrémenter le compteur
-        await updateDoc(postRef, {
-          "stats.likes": currentLikes + 1,
-        });
-
+        await batch.commit();
         console.log("✅ Like ajouté");
       }
 
@@ -223,14 +212,25 @@ export const usePost = (uid: string | undefined) => {
   ) => {
     if (!uid) throw new Error("Utilisateur non connecté");
     
+    if (!content.trim()) throw new Error("Le commentaire ne peut pas être vide");
+
     try {
-      await addDoc(collection(db, "comments"), {
+      // Le commentaire et le compteur du post partent dans la même
+      // écriture atomique, sinon stats.comments dérive du réel.
+      const batch = writeBatch(db);
+
+      batch.set(doc(collection(db, "comments")), {
         postId,
         uid,
         content,
         createdAt: serverTimestamp(),
         likes: 0,
       });
+      batch.update(doc(db, "posts", postId), {
+        "stats.comments": increment(1),
+      });
+
+      await batch.commit();
     } catch (err: unknown) { // ✅ Remplacement de `any` par `unknown`
       console.error("❌ Erreur ajout commentaire:", err);
       throw new Error(getErrorMessage(err));
