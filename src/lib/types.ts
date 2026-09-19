@@ -19,6 +19,7 @@ export interface Feature {
   description: string;
   accent: string;
   tag: string;
+  status?: "active" | "standby";
 }
 
 // ── ABOUT ───────────────────────────────────────────────────
@@ -177,6 +178,19 @@ export interface PostMedia {
   height?: number;
 }
 
+export interface PollOption {
+  id: string;
+  text: string;
+  votes: number;
+}
+
+export interface PostPoll {
+  question: string;
+  options: PollOption[];
+  totalVotes: number;
+  userVotedOptionId?: string;
+}
+
 export interface Post {
   id: string;
   uid: string;
@@ -187,6 +201,7 @@ export interface Post {
   
   content: string;
   media?: PostMedia;
+  poll?: PostPoll;
   
   stats: {
     likes: number;
@@ -201,6 +216,7 @@ export interface Post {
     updatedAt?: Date;
     tags?: string[];
     visibility: 'public' | 'followers' | 'private';
+    animeId?: number;
   };
 }
 

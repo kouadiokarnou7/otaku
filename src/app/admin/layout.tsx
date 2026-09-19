@@ -7,6 +7,10 @@ import { useAdminGuard } from "@/lib/hooks/store/auth/useAdminGuard";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // L'état déployé/réduit vit ici, et non dans AdminSidebar : le layout
+  // doit décaler <main> exactement de la largeur de la sidebar, qui est
+  // en `fixed` et ne pousse donc pas le contenu d'elle-même.
+  const [isExpanded, setIsExpanded] = useState(true);
   const { isAdmin, isChecking } = useAdminGuard();
 
   // Tant que le rôle n'est pas confirmé, aucun contenu d'administration
@@ -29,21 +33,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+    <div className="flex min-h-screen flex-col bg-background">
       <AdminHeader onMenuToggle={() => setIsMenuOpen(!isMenuOpen)} isMenuOpen={isMenuOpen} />
 
-      <div style={{ display: "flex", flex: 1, marginTop: 64 }}>
-        <AdminSidebar isOpen={isMenuOpen} />
+      <div className="flex flex-1 pt-16">
+        <AdminSidebar
+          isOpen={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+          isExpanded={isExpanded}
+          onToggleExpand={() => setIsExpanded((v) => !v)}
+        />
 
-        {/* Content Area */}
+        {/* Décalage en CSS pur (préfixe `md:`) et non calculé en JS :
+            sur mobile la sidebar est un drawer qui passe par-dessus,
+            donc aucune marge — et surtout aucun débordement horizontal
+            au premier rendu, avant que le JS ne connaisse la largeur. */}
         <main
-          style={{
-            flex: 1,
-            marginLeft: 0, // La sidebar est fixed
-            padding: "24px",
-            overflowY: "auto",
-          }}
-          className="md:ml-0"
+          className={`min-w-0 flex-1 p-4 transition-[margin] duration-300 sm:p-6 lg:p-8 ${
+            isExpanded ? "md:ml-60" : "md:ml-[72px]"
+          }`}
         >
           {children}
         </main>

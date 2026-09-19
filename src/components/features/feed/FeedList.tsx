@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { Post } from "@/lib/types";
@@ -12,45 +11,43 @@ interface FeedListProps {
   emptyMessage?: string;
 }
 
-export default function FeedList({ 
-  posts, 
+export default function FeedList({
+  posts,
   onLike,
-  emptyMessage = "Aucun post pour le moment 🎮" 
+  emptyMessage = "Aucun post pour le moment 🎮",
 }: FeedListProps) {
+  // ── État vide ──
   if (posts.length === 0) {
     return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center py-16 px-4"
+        className="rounded-2xl border border-dashed border-border px-6 py-14 text-center"
       >
-        <div className="inline-block rounded-2xl border border-orange-500/20 bg-orange-500/5 px-8 py-8">
-          <p className="text-gray-400 text-lg font-medium whitespace-pre-line">{emptyMessage}</p>
-          <p className="text-gray-500 text-sm mt-3">Reviens bientôt pour découvrir de nouveaux posts ! 🚀</p>
-        </div>
+        <p className="whitespace-pre-line font-medium text-foreground">
+          {emptyMessage}
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Reviens bientôt pour découvrir de nouveaux posts 🚀
+        </p>
       </motion.div>
     );
   }
 
   return (
-    <motion.div 
-      className="flex flex-col gap-4 pd-x-4 pd-y-6 pd-sm-x-6 pd-sm-y-8w"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
+    <div className="flex flex-col gap-4">
       {posts.map((post, index) => (
         <motion.div
           key={post.id}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
+          // L'escalier s'arrête au 6e post : au-delà, l'attente cumulée
+          // se voit plus qu'elle n'apporte, surtout au scroll.
+          transition={{ delay: Math.min(index, 6) * 0.05 }}
         >
-          <PostCard 
-            post={post} 
-            onLike={onLike} 
-          />
+          <PostCard post={post} onLike={onLike} />
         </motion.div>
       ))}
-    </motion.div>
+    </div>
   );
 }

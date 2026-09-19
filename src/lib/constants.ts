@@ -49,66 +49,44 @@ export const KANJI = [
 // ── FEATURES ────────────────────────────────────────────────
 export const FEATURES: Feature[] = [
   {
-    icon: Zap,
-    title: "Actualités 225",
-    description: "Toutes les sorties d'animés filtrées pour la communauté ivoirienne. Sois le premier informé avant tout le monde.",
-    accent: "#FF6B1A",
-    tag: "Live",
-  },
-  {
     icon: Users,
-    title: "Forums & Débats",
-    description: "Théories folles, spoilers chauds, débats interminables. Ton espace pour t'exprimer sans filtre entre passionnés.",
-    accent: "#C0392B",
+    title: "Communauté",
+    description: "Partage tes idées et échange avec d'autres passionnés d'animes et de mangas.",
+    accent: "#FF3E00",
     tag: "Social",
-  },
-  {
-    icon: Calendar,
-    title: "Événements 225",
-    description: "Conventions, cosplay, tournois à Abidjan et dans toute la CI. Plus jamais d'event raté.",
-    accent: "#00D4FF",
-    tag: "IRL",
+    status: "active",
   },
   {
     icon: BookOpen,
-    title: "Bibliothèque Manga",
-    description: "Catalogue complet avec notes, reviews et recommandations curées par la communauté locale.",
-    accent: "#9B59B6",
-    tag: "Culture",
+    title: "Anime Tracker",
+    description: "Suis tes anime, garde ta progression et ne rate pas les nouveaux épisodes.",
+    accent: "#00F5FF",
+    tag: "Tracker",
+    status: "active",
   },
   {
     icon: Trophy,
-    title: "Classements & Quêtes",
-    description: "Gagne des badges, monte en rang, deviens le Hokage de la communauté 225. La gamification au service de la passion.",
+    title: "Quiz",
+    description: "Teste tes connaissances anime & manga à travers des quiz et des défis.",
     accent: "#F39C12",
-    tag: "Gamification",
-  },
-  {
-    icon: Flame,
-    title: "Fan Art & Cosplay",
-    description: "Expose tes créations, vote pour les meilleures œuvres, fais découvrir les talents ivoiriens au monde entier.",
-    accent: "#E74C3C",
-    tag: "Créatif",
+    tag: "Quiz",
+    status: "active",
   },
 ];
 
 // ── ABOUT ───────────────────────────────────────────────────
 export const ABOUT: AboutData = {
-  tag: "Notre Mission",
-  title: ["Bâtir le pont entre", "la culture Otaku", "et la Côte d'Ivoire"],
+  tag: "Notre Vision",
+  title: ["Un espace pensé", "par des passionnés", "pour des passionnés"],
   paragraphs: [
-    "Otaku 225 est né d'une conviction simple : les fans d'animés et de manga ivoiriens méritent leur propre espace. Un endroit qui parle leur langue, connaît leur réalité et célèbre leur passion sans complexe.",
-    "De Yopougon à Cocody, de Bouaké à San-Pédro — nous connectons une génération entière qui a grandi avec Dragon Ball, Naruto et One Piece. Ton \"225\" dans notre nom, c'est toi.",
+    "Nekama est né d'une conviction simple : les fans d'animés et de manga ivoiriens méritent leur propre espace d'échange. Un endroit moderne pour partager ses théories, suivre ses sorties hebdomadaires et tester ses connaissances sans complexe.",
+    "De Yopougon à Cocody, de Bouaké à San-Pédro — nous connectons une génération entière unie par la même passion. Ton univers manga, à portée de main.",
   ],
-  highlights: [
-    { label: "Fondé en", value: "2026" },
-    { label: "Ville", value: "Abidjan" },
-    { label: "Membres", value: "10K+" },
-  ],
+  highlights: [],
   pillars: [
-    { emoji: "📍", label: "Ancré en Côte d'Ivoire", text: "Contenu localisé, événements locaux, communauté 100% ivoirienne." },
-    { emoji: "❤", label: "Passion sans frontières", text: "Anime, manga, cosplay, fan art — toutes les expressions bienvenues." },
-    { emoji: "🌍", label: "Connecté au monde", text: "Les dernières actus mondiales filtrées pour la communauté 225." },
+    { emoji: "🎌", label: "Culture Locale", text: "Une communauté 100% connectée aux réalités de la Côte d'Ivoire." },
+    { emoji: "⚡", label: "Instant Vivant", text: "Partage tes coups de cœur, tes théories et discute avec tes Nakamas." },
+    { emoji: "🏆", label: "Défis Hebdomadaires", text: "Grimpe les échelons en testant tes connaissances manga." },
   ],
 };
 

@@ -3,122 +3,106 @@
 import { motion } from "framer-motion";
 import { ABOUT } from "@/lib/constants";
 
+/**
+ * Section À Propos (About) de Nekama.
+ * Gère de manière dynamique les thèmes clair et sombre (Dark/Light mode)
+ * via les variables sémantiques de Tailwind CSS.
+ * 
+ * @component
+ * @returns {JSX.Element} La section À Propos.
+ */
 export default function About() {
   return (
-    <section id="about" style={{ padding:"96px 24px", position:"relative", overflow:"hidden" }}>
-      {/* Séparateur */}
-      <div style={{ position:"absolute",top:0,left:0,right:0,height:1,background:"linear-gradient(90deg,transparent,rgba(192,57,43,0.2),transparent)" }} />
-
-      {/* Halo fond droit */}
-      <div style={{ position:"absolute",right:-100,top:"40%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(192,57,43,0.05),transparent 65%)",pointerEvents:"none" }} />
-
-      <div style={{ maxWidth:1100, margin:"0 auto", position:"relative", zIndex:1 }}>
-
-        {/* Layout alterné : texte gauche / visuel droit */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,420px),1fr))", gap:"48px 64px", alignItems:"center", marginBottom:64 }}>
-
-          {/* ─ Côté Texte ─ */}
+    <section id="about" className="border-y border-border px-[var(--px)] py-[var(--section-py)] bg-background text-foreground transition-colors duration-300">
+      <div className="mx-auto max-w-[1100px]">
+        {/* Deux colonnes : texte à gauche, visuel à droite */}
+        <div className="mb-16 grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          
+          {/* ── Colonne texte ── */}
           <motion.div
-            initial={{ opacity:0, x:-30 }}
-            whileInView={{ opacity:1, x:0 }}
-            viewport={{ once:true }}
-            transition={{ duration:.65, ease:[.16,1,.3,1] }}
+            initial={{ opacity: 0, x: -24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span style={{ display:"inline-block",padding:"4px 14px",borderRadius:99,fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:20,color:"#C0392B",border:"1px solid rgba(192,57,43,0.35)",background:"rgba(192,57,43,0.08)" }}>
+            <p className="section-eyebrow text-[#FF3E00] flex items-center gap-2 font-bold tracking-widest text-xs uppercase mb-4">
+              <span className="h-0.5 w-8 bg-[#FF3E00]" aria-hidden="true" />
               {ABOUT.tag}
-            </span>
+            </p>
 
-            <h2 style={{ fontSize:"clamp(26px,5vw,44px)", fontWeight:900, color:"#fff", lineHeight:1.1, marginBottom:24, letterSpacing:-0.5 }}>
-              {ABOUT.title[0]}{" "}<br />
-              <span style={{ color:"#FF6B1A", textShadow:"0 0 40px rgba(255,107,26,0.25)" }}>
-                {ABOUT.title[1]}
-              </span>{" "}<br />
+            <h2 className="font-display text-[clamp(36px,7vw,68px)] leading-[0.95] text-foreground font-extrabold">
+              {ABOUT.title[0]}
+              <br />
+              <span className="text-[#FF3E00]">{ABOUT.title[1]}</span>
+              <br />
               {ABOUT.title[2]}
             </h2>
 
-            {ABOUT.paragraphs.map((p, i) => (
-              <p key={i} style={{ fontSize:14,color:"rgba(255,255,255,0.42)",lineHeight:1.75,marginBottom:14 }}>
-                {p}
-              </p>
-            ))}
-
-            {/* Highlights */}
-            <div style={{ display:"flex",gap:32,marginTop:28,marginBottom:28,flexWrap:"wrap" }}>
-              {ABOUT.highlights.map((h) => (
-                <div key={h.label}>
-                  <div style={{ fontSize:10,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:4 }}>
-                    {h.label}
-                  </div>
-                  <div style={{ fontSize:20,fontWeight:900,color:"#fff" }}>{h.value}</div>
-                </div>
+            <div className="mt-6 space-y-4">
+              {ABOUT.paragraphs.map((paragraph) => (
+                <p key={paragraph.slice(0, 24)} className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  {paragraph}
+                </p>
               ))}
             </div>
 
-            
+            {/* Chiffres clés */}
+            {ABOUT.highlights && ABOUT.highlights.length > 0 && (
+              <dl className="mt-10 flex flex-wrap gap-x-10 gap-y-6 border-t border-border pt-8">
+                {ABOUT.highlights.map((highlight) => (
+                  <div key={highlight.label}>
+                    <dt className="mb-1 text-[10px] font-bold tracking-[0.16em] text-muted-foreground uppercase">
+                      {highlight.label}
+                    </dt>
+                    <dd className="font-display text-4xl font-black leading-none text-foreground">
+                      {highlight.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            )}
           </motion.div>
 
-          {/* ─ Côté Visuel ─ */}
+          {/* ── Colonne visuelle ── */}
           <motion.div
-            initial={{ opacity:0, x:30 }}
-            whileInView={{ opacity:1, x:0 }}
-            viewport={{ once:true }}
-            transition={{ duration:.65, ease:[.16,1,.3,1], delay:.1 }}
-            style={{ position:"relative" }}
+            initial={{ opacity: 0, x: 24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.65, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="relative"
           >
-            {/* Card principale */}
-            <div style={{ borderRadius:20,border:"1px solid rgba(255,255,255,0.07)",background:"rgba(14,14,20,0.6)",padding:3 }}>
-              <div style={{ borderRadius:18,overflow:"hidden",aspectRatio:"4/3",background:"linear-gradient(135deg,#0d0d16,#050508)",display:"flex",alignItems:"center",justifyContent:"center",position:"relative" }}>
-                {/* Motif hachuré */}
-                <div style={{ position:"absolute",inset:0,opacity:.04,backgroundImage:"repeating-linear-gradient(45deg,rgba(255,107,26,.6) 0,rgba(255,107,26,.6) 1px,transparent 1px,transparent 20px)" }} />
-                {/* Décor central */}
-                <div style={{ textAlign:"center",position:"relative",zIndex:1 }}>
-                  <div style={{ fontSize:72,marginBottom:8,userSelect:"none" }}>⛩️</div>
-                  <div style={{ fontSize:52,fontWeight:900,color:"rgba(255,255,255,0.04)",userSelect:"none",letterSpacing:-2 }}>225</div>
-                </div>
-                {/* Orbes */}
-                <div style={{ position:"absolute",top:16,right:16,width:60,height:60,borderRadius:"50%",background:"rgba(255,107,26,.12)",filter:"blur(20px)" }} />
-                <div style={{ position:"absolute",bottom:16,left:16,width:40,height:40,borderRadius:"50%",background:"rgba(192,57,43,.15)",filter:"blur(16px)" }} />
+            <div className="rounded-3xl border border-border bg-card p-3 shadow-xl">
+              <div className="flex aspect-4/3 flex-col items-center justify-center rounded-2xl bg-muted/40">
+                <span aria-hidden="true" className="text-6xl select-none sm:text-7xl">
+                  ⛩️
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="font-display text-[clamp(64px,14vw,120px)] leading-none text-foreground/[0.04] font-black select-none"
+                >
+                  225
+                </span>
               </div>
             </div>
-
-            {/* Badge flottant haut-gauche */}
-            <motion.div
-              initial={{ opacity:0,scale:.8 }} whileInView={{ opacity:1,scale:1 }}
-              viewport={{ once:true }} transition={{ delay:.4 }}
-              style={{ position:"absolute",top:-16,left:-16,background:"#0d0d16",border:"1px solid rgba(255,255,255,0.1)",borderRadius:14,padding:"10px 16px",boxShadow:"0 8px 32px rgba(0,0,0,.6)" }}
-            >
-              <div style={{ fontSize:10,color:"rgba(255,255,255,0.3)",marginBottom:2 }}>Membres</div>
-              <div style={{ fontSize:22,fontWeight:900,color:"#fff",lineHeight:1 }}>12K+</div>
-            </motion.div>
-
-            {/* Badge flottant bas-droit */}
-            <motion.div
-              initial={{ opacity:0,scale:.8 }} whileInView={{ opacity:1,scale:1 }}
-              viewport={{ once:true }} transition={{ delay:.55 }}
-              style={{ position:"absolute",bottom:-16,right:-16,background:"#0d0d16",border:"1px solid rgba(255,255,255,0.1)",borderRadius:14,padding:"10px 16px",boxShadow:"0 8px 32px rgba(0,0,0,.6)" }}
-            >
-              <div style={{ fontSize:10,color:"rgba(255,255,255,0.3)",marginBottom:2 }}>Abidjan 🇨🇮</div>
-              <div style={{ fontSize:13,fontWeight:700,color:"#fff" }}>Fondé en 2026</div>
-            </motion.div>
           </motion.div>
         </div>
 
         {/* Piliers */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,280px),1fr))", gap:12 }}>
-          {ABOUT.pillars.map((p, i) => (
+        <div className="grid gap-4 sm:grid-cols-3">
+          {ABOUT.pillars.map((pillar, i) => (
             <motion.div
-              key={p.label}
-              initial={{ opacity:0,y:20 }}
-              whileInView={{ opacity:1,y:0 }}
-              viewport={{ once:true }}
-              transition={{ duration:.5, delay:i*0.1 }}
-              style={{ display:"flex",gap:14,padding:18,borderRadius:14,border:"1px solid rgba(255,255,255,0.05)",background:"rgba(255,255,255,0.02)" }}
+              key={pillar.label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="rounded-2xl border border-border bg-card p-5 shadow-md hover:shadow-lg transition-shadow"
             >
-              <div style={{ fontSize:22,lineHeight:1,marginTop:2,userSelect:"none" }}>{p.emoji}</div>
-              <div>
-                <div style={{ fontSize:13,fontWeight:700,color:"#fff",marginBottom:4 }}>{p.label}</div>
-                <div style={{ fontSize:12,color:"rgba(255,255,255,0.35)",lineHeight:1.55 }}>{p.text}</div>
-              </div>
+              <span aria-hidden="true" className="text-xl select-none">
+                {pillar.emoji}
+              </span>
+              <h3 className="mt-3 mb-1.5 text-sm font-bold text-foreground">{pillar.label}</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">{pillar.text}</p>
             </motion.div>
           ))}
         </div>

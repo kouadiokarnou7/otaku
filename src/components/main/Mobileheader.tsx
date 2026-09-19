@@ -1,102 +1,67 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Menu } from "lucide-react";
+import { Bell, Search } from "lucide-react";
 import { motion } from "framer-motion";
-import logo from "@/assets/logo.png";
-import Image from "next/image";
 
 interface MobileHeaderProps {
   notifCount?: number;
   onMenuToggle?: () => void;
 }
 
-export default function MobileHeader({ notifCount = 0, onMenuToggle }: MobileHeaderProps) {
+export default function MobileHeader({ notifCount = 0 }: MobileHeaderProps) {
   return (
-    <header
-      style={{
-        position:       "fixed",
-        top:            0,
-        left:           0,
-        right:          0,
-        zIndex:         50,
-        height:         56,
-        display:        "flex",
-        alignItems:     "center",
-        justifyContent: "space-between",
-        padding:        "0 16px",
-        background:     "rgba(5,5,8,0.95)",
-        backdropFilter: "blur(20px)",
-        borderBottom:   "1px solid rgba(255,255,255,0.06)",
-      }}
-      className="md:hidden"
-    >
-      
-      {/* Logo */}
-     {/* Logo à gauche */}
-  <Link
-    href="/feed"
-    style={{
-      display: "flex",
-      alignItems: "center",
-      textDecoration: "none"
-    }}
-  >
-    <Image
-      src={logo}
-      alt="Logo"
-      width={80}
-      height={35}
-      priority
-      style={{ width: "auto", height: "auto" }}
-    />
-  </Link>
-
-      {/* Cloche notifications */}
-      <Link href="/notifications" style={{ position:"relative", textDecoration:"none" }}>
-        <motion.div
-          whileTap={{ scale: 0.85 }}
-          style={{
-            width:          40,
-            height:         40,
-            borderRadius:   12,
-            display:        "flex",
-            alignItems:     "center",
-            justifyContent: "center",
-            background:     "rgba(255,255,255,0.04)",
-            border:         "1px solid rgba(255,255,255,0.07)",
-          }}
-        >
-          <Bell size={19} color="rgba(255,255,255,0.7)" />
-        </motion.div>
-
-        {/* Badge */}
-        {notifCount > 0 && (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            style={{
-              position:       "absolute",
-              top:            -4,
-              right:          -4,
-              minWidth:       18,
-              height:         18,
-              borderRadius:   99,
-              background:     "#FF6B1A",
-              color:          "#fff",
-              fontSize:       10,
-              fontWeight:     700,
-              display:        "flex",
-              alignItems:     "center",
-              justifyContent: "center",
-              padding:        "0 4px",
-              border:         "2px solid #050508",
-            }}
-          >
-            {notifCount > 9 ? "9+" : notifCount}
-          </motion.span>
-        )}
+    <header className="fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between border-b border-border/60 bg-[#0a0e27]/90 px-4 backdrop-blur-xl md:hidden transition-colors duration-300">
+      {/* ── Logo Nekama ── */}
+      <Link href="/feed" className="flex flex-col no-underline group">
+        <span className="font-heading text-lg font-extrabold tracking-tight text-white group-hover:text-primary transition-colors">
+          Nekama
+        </span>
+        <span className="text-[9px] -mt-1 font-medium tracking-widest text-primary/80">
+          ネカマ
+        </span>
       </Link>
+
+      {/* ── Actions droite : Recherche générale + Notifications ── */}
+      <div className="flex items-center gap-2">
+        <Link
+          href="/search"
+          aria-label="Recherche générale"
+          className="relative no-underline"
+        >
+          <motion.div
+            whileTap={{ scale: 0.85 }}
+            className="flex size-9 items-center justify-center rounded-xl border border-border/80 bg-muted/50 text-muted-foreground hover:text-white hover:bg-muted hover:border-primary/40 transition-colors"
+          >
+            <Search size={17} />
+          </motion.div>
+        </Link>
+
+        <Link
+          href="/notifications"
+          aria-label={
+            notifCount > 0 ? `Notifications (${notifCount} non lues)` : "Notifications"
+          }
+          className="relative no-underline"
+        >
+          <motion.div
+            whileTap={{ scale: 0.85 }}
+            className="flex size-9 items-center justify-center rounded-xl border border-border/80 bg-muted/50 text-muted-foreground hover:text-white hover:bg-muted hover:border-primary/40 transition-colors"
+          >
+            <Bell size={18} />
+          </motion.div>
+
+          {notifCount > 0 && (
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -right-1 -top-1 flex h-[16px] min-w-[16px] items-center justify-center rounded-full border-2 border-[#0a0e27] bg-[#EF4444] px-1 text-[9px] font-bold text-white shadow-sm"
+            >
+              {notifCount > 9 ? "9+" : notifCount}
+            </motion.span>
+          )}
+        </Link>
+      </div>
     </header>
   );
 }

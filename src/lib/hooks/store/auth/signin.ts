@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase/firebaseconfig";
 import { generateAvatar } from "@/lib/utils";
 import { registerSchema } from "@/lib/validators";
+import { uploadAvatar } from "@/lib/firebase/storage";
 import type { RegisterFormData } from "@/lib/types";
 
 const googleProvider = new GoogleAuthProvider();
@@ -25,7 +26,7 @@ function generateUsername(name: string): string {
     .replace(/\s+/g, "_")
     .replace(/[^a-z0-9_]/g, "")
     .slice(0, 12);
-  
+
   // Ajoute un suffixe aléatoire pour éviter les conflits
   const suffix = Math.random().toString(36).slice(2, 6);
   return `${base}_${suffix}`;
@@ -37,7 +38,7 @@ export function useRegister() {
   const [error, setError] = useState<string | null>(null);
 
   // 🔐 INSCRIPTION EMAIL/PASSWORD
-  const registerdata = useCallback(async (data: RegisterFormData) => {
+  const registerdata = useCallback(async (data: RegisterFormData, avatarFile?: File | null) => {
     setLoading(true);
     setError(null);
 
@@ -56,8 +57,19 @@ export function useRegister() {
       // 3. Génération pseudo unique (sans requête Firestore)
       const username = generateUsername(validated.username);
 
-      // 4. Avatar : fourni ou généré
-      const avatar = validated.avatar ?? generateAvatar(username);
+      // 4. Avatar : upload de l'image ou fallback
+      let avatar = null;
+      if (avatarFile) {
+        try {
+          avatar = await uploadAvatar(user.uid, avatarFile);
+        } catch (uploadErr) {
+          console.warn("⚠️ Échec de l'upload de l'avatar lors de l'inscription:", uploadErr);
+        }
+      }
+
+      if (!avatar) {
+        avatar = validated.avatar ?? generateAvatar(username);
+      }
 
       // 5. Écriture Firestore → ID du document = user.uid ✅
       await setDoc(doc(db, "users", user.uid), {
@@ -71,7 +83,10 @@ export function useRegister() {
       });
 
       // 6. Mettre à jour le profil Firebase Auth (optionnel mais recommandé)
-      await updateProfile(user, { displayName: username });
+      await updateProfile(user, {
+        displayName: username,
+        photoURL: avatar ?? null
+      });
 
       router.push("/feed");
       return user;

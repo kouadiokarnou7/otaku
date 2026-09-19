@@ -1,27 +1,37 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Figtree } from "next/font/google";
+import { Montserrat, Inter, Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
-const figtree = Figtree({subsets:['latin'],variable:'--font-sans'});
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Typographies officielles Nekama : Montserrat (titres) & Inter (texte)
+const montserrat = Montserrat({
   subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-montserrat",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
-
+const notoJp = Noto_Serif_JP({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-noto-jp",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "Otaku225 — Le réseau social des otakus ivoiriens",
+  title: "NEKAMA — Le réseau social des otakus",
   description:
-    "Le premier réseau social pensé pour les otakus de Côte d'Ivoire. Rejoins la bêta, sois parmi les fondateurs.",
-  keywords: "otaku, anime, réseau social, côte d'ivoire, abidjan, bêta",
+    "Plus qu'un réseau social, une communauté. L'espace ultime pensé pour les otakus.",
+  keywords: "otaku, anime, manga, réseau social, communauté, pwa, nekama",
+  openGraph: {
+    title: "NEKAMA",
+  },
 };
 
 export default function RootLayout({
@@ -30,15 +40,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={cn("font-sans", figtree.variable)}>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;500;600;700;800;900&family=Noto+Serif+JP:wght@400;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html
+      lang="fr"
+      className={cn("dark", montserrat.variable, inter.variable, notoJp.variable)}
+      suppressHydrationWarning
+    >
       <body>{children}</body>
     </html>
   );

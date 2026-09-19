@@ -13,8 +13,12 @@ interface AdminHeaderProps {
   isMenuOpen?: boolean;
 }
 
+// Style commun aux boutons d'action de la barre.
+const ACTION_BTN =
+  "flex cursor-pointer items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50";
+
 export default function AdminHeader({ onMenuToggle, isMenuOpen }: AdminHeaderProps) {
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -28,28 +32,12 @@ export default function AdminHeader({ onMenuToggle, isMenuOpen }: AdminHeaderPro
   };
 
   return (
-    <header
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 50,
-        height: 64,
-        display: "flex",
-        alignItems: "center",
-        padding: "0 24px",
-        gap: 16,
-        background: "rgba(5,5,8,0.95)",
-        backdropFilter: "blur(20px)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-      }}
-    >
+    <header className="fixed inset-x-0 top-0 z-50 flex h-16 items-center gap-4 border-b border-border bg-surface/95 px-6 backdrop-blur-xl">
       {/* ── Logo ── */}
-      <Link href="/admin" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+      <Link href="/admin" className="flex items-center gap-2">
         <Image
           src={logo}
-          alt="Logo"
+          alt="Otaku 225 — Administration"
           width={100}
           height={42}
           priority
@@ -57,60 +45,34 @@ export default function AdminHeader({ onMenuToggle, isMenuOpen }: AdminHeaderPro
         />
       </Link>
 
-      {/* ── Titre (visible sur mobile/tablette seulement) ── */}
-      <div className="md:hidden ml-auto mr-auto">
-        <h1 style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Admin Panel</h1>
-      </div>
+      {/* ── Titre (mobile/tablette uniquement) ── */}
+      <h1 className="mx-auto text-sm font-bold text-foreground md:hidden">
+        Admin Panel
+      </h1>
 
-      {/* ── Spacer ── */}
-      <div style={{ flex: 1 }} />
+      <div className="flex-1" />
 
-      {/* ── Actions droite ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      {/* ── Actions ── */}
+      <div className="flex items-center gap-2">
         {/* Notifications */}
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          style={{
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            padding: 8,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "relative",
-          }}
+          aria-label="Notifications"
+          className={`relative ${ACTION_BTN}`}
         >
-          <Bell size={20} color="rgba(255,255,255,0.6)" />
-          <div
-            style={{
-              position: "absolute",
-              top: 2,
-              right: 2,
-              width: 8,
-              height: 8,
-              background: "#FF6B1A",
-              borderRadius: "50%",
-            }}
-          />
+          <Bell size={20} />
+          <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-brand" />
         </motion.button>
 
         {/* Profil */}
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          style={{
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            padding: 8,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          aria-label="Mon compte"
+          className={ACTION_BTN}
         >
-          <User size={20} color="rgba(255,255,255,0.6)" />
+          <User size={20} />
         </motion.button>
 
         {/* Logout */}
@@ -119,42 +81,22 @@ export default function AdminHeader({ onMenuToggle, isMenuOpen }: AdminHeaderPro
           whileTap={{ scale: 0.95 }}
           onClick={handleLogout}
           disabled={isLoggingOut}
-          style={{
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            padding: 8,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            opacity: isLoggingOut ? 0.5 : 1,
-          }}
+          aria-label="Se déconnecter"
+          className={ACTION_BTN}
         >
-          <LogOut size={20} color="rgba(255,255,255,0.6)" />
+          <LogOut size={20} />
         </motion.button>
 
-        {/* Menu Toggle (visible sur mobile seulement) */}
+        {/* Menu (mobile uniquement) */}
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           onClick={onMenuToggle}
-          className="md:hidden"
-          style={{
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            padding: 8,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginLeft: 8,
-          }}
+          aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-expanded={isMenuOpen}
+          className={`ml-1 md:hidden ${ACTION_BTN}`}
         >
-          {isMenuOpen ? (
-            <X size={20} color="rgba(255,255,255,0.8)" />
-          ) : (
-            <Menu size={20} color="rgba(255,255,255,0.6)" />
-          )}
+          {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </motion.button>
       </div>
     </header>

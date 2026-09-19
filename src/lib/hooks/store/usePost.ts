@@ -39,10 +39,11 @@ export const usePost = (uid: string | undefined) => {
     content: string,
     mediaUrl?: string,
     tags?: string[],
-    animeId?: number
+    animeId?: number,
+    poll?: import("@/lib/types").PostPoll
   ) => {
     if (!uid) throw new Error("Utilisateur non connecté");
-    if (!content.trim() && !mediaUrl) throw new Error("Le post ne peut pas être vide");
+    if (!content.trim() && !mediaUrl && !poll) throw new Error("Le post ne peut pas être vide");
 
     setLoading(true);
     setError(null);
@@ -74,6 +75,7 @@ export const usePost = (uid: string | undefined) => {
             type: mediaUrl.match(/\.(mp4|webm)$/i) ? 'video' : 'image',
           }
         }),
+        ...(poll && { poll }),
         stats: { likes: 0, comments: 0, shares: 0 },
         likedByUser: false,
         metadata: {

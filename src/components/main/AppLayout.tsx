@@ -26,8 +26,15 @@ export default function AppLayout({ children, notifCount = 0 }: AppLayoutProps) 
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // La sidebar est `fixed` : elle ne pousse pas le contenu toute seule.
+  // Le décalage est fait en CSS pur (préfixe `md:`) et NON en JS :
+  // `isMobile` n'est connu qu'après le premier effet, donc un calcul en
+  // JS appliquait une marge de 240px au premier rendu sur mobile —
+  // d'où le débordement horizontal au chargement.
+  const sidebarOffset = isExpanded ? "md:ml-60" : "md:ml-[72px]";
+
   return (
-    <div style={{ minHeight: "100vh", background: "#050508" }}>
+    <div className="min-h-screen bg-background text-foreground">
       {/* ── Mobile uniquement : header logo + cloche ── */}
       <div className="block md:hidden">
         <MobileHeader notifCount={notifCount} onMenuToggle={() => setIsMenuOpen(!isMenuOpen)} />
@@ -38,7 +45,7 @@ export default function AppLayout({ children, notifCount = 0 }: AppLayoutProps) 
         <TopBar notifCount={notifCount} onToggleSidebar={() => setIsExpanded(!isExpanded)} />
       </div>
 
-      <div style={{ display: "flex", flex: 1, minHeight: "calc(100vh - 56px)" }} className="md:min-h-[calc(100vh-60px)]">
+      <div className="flex min-h-[calc(100vh-56px)] flex-1 md:min-h-[calc(100vh-60px)]">
         {/* ── Sidebar (desktop + tablette seulement) ── */}
         <div className="hidden md:block">
           <Sidebar isExpanded={isExpanded} onToggle={() => setIsExpanded(!isExpanded)} />
@@ -48,49 +55,45 @@ export default function AppLayout({ children, notifCount = 0 }: AppLayoutProps) 
         <AnimatePresence>
           {/* ── Overlay sur mobile ── */}
           {isMobile && isMenuOpen && (
-            <motion.div
+            <motion.button
+              key="overlay"
+              type="button"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              style={{
-                position: "fixed",
-                inset: 0,
-                background: "rgba(0,0,0,0.4)",
-                zIndex: 30,
-              }}
               onClick={() => setIsMenuOpen(false)}
+              aria-label="Fermer le menu"
+              className="fixed inset-0 z-30 bg-black/50"
             />
           )}
 
           {/* ── Mobile sidebar (slide-in) ── */}
           {isMobile && isMenuOpen && (
             <motion.div
+              key="drawer"
               initial={{ x: -240 }}
               animate={{ x: 0 }}
               exit={{ x: -240 }}
               transition={{ duration: 0.3 }}
-              style={{
-                position: "fixed",
-                top: 56,
-                left: 0,
-                width: 240,
-                bottom: 64,
-                zIndex: 40,
-              }}
+              className="fixed bottom-16 left-0 top-14 z-40 w-60"
             >
-              <Sidebar isExpanded={true} onToggle={() => setIsMenuOpen(false)} />
+              <Sidebar isExpanded onToggle={() => setIsMenuOpen(false)} />
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* ── Contenu principal ── */}
+        {/* Le layout ne gère QUE les décalages (barres fixes + sidebar).
+            Il n'impose ni largeur ni padding horizontal : chaque page pose
+            son propre conteneur. Sinon les deux s'empilent — la page se
+            retrouve doublement rognée — et les en-têtes sticky ne peuvent
+            plus aller pleine largeur.
+            `min-w-0` empêche un enfant large (image, tableau) de forcer un
+            débordement horizontal de la grille flex. */}
         <main
-          className="pt-[56px] pb-[64px] md:pt-[60px] md:pb-0 flex-1"
-          style={{ color: "#dacfcf", overflowY: "auto" }}
+          className={`min-w-0 flex-1 pb-20 pt-14 transition-[margin] duration-300 md:pb-8 md:pt-[60px] ${sidebarOffset}`}
         >
-          <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 16px" }}>
-            {children}
-          </div>
+          {children}
         </main>
       </div>
 

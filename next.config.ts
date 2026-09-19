@@ -19,8 +19,17 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'myanimelist.net',
         pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.myanimelist.net',
+        pathname: '/**',
       },
     ],
     formats: ['image/webp', 'image/avif'],
@@ -29,8 +38,8 @@ const nextConfig: NextConfig = {
 
   allowedDevOrigins: [
     '192.168.2.5',
-    '*.ngrok-free.app', // ✅ Autorise tous les sous-domaines ngrok
-  ],// ✅ fusion ici
+    '*.ngrok-free.app',
+  ],
 };
 
 export default nextConfig;

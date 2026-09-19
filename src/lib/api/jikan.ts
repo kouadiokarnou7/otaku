@@ -3,7 +3,7 @@
  * Documentation: https://jikan.moe/api
  */
 
-const JIKAN_BASE_URL = process.env.NEXT_PUBLIC_API_JIKAN;
+const JIKAN_BASE_URL = (process.env.NEXT_PUBLIC_API_JIKAN || "https://api.jikan.moe/v4").replace(/\/$/, "");
 
 
 // Rate limiting delay (ms)
@@ -139,14 +139,15 @@ export async function searchAnime(
     );
 
     if (!response.ok) {
-      throw new Error(`Erreur Jikan: ${response.status}`);
+      console.warn(`⚠️ Jikan API returned status ${response.status} for search`);
+      return { data: [], pagination: { last_visible_page: 1, has_next_page: false, current_page: 1, items: { count: 0, total: 0, per_page: limit } } };
     }
 
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("❌ Erreur recherche anime:", error);
-    throw error;
+    console.warn("⚠️ Jikan API search error:", error);
+    return { data: [], pagination: { last_visible_page: 1, has_next_page: false, current_page: 1, items: { count: 0, total: 0, per_page: limit } } };
   }
 }
 
@@ -158,14 +159,15 @@ export async function getAnimeById(id: number): Promise<JikanAnime> {
     const response = await fetchWithRetry(`${JIKAN_BASE_URL}/anime/${id}`);
 
     if (!response.ok) {
-      throw new Error(`Erreur Jikan: ${response.status}`);
+      console.warn(`⚠️ Jikan API returned status ${response.status} for ID ${id}`);
+      return null as any; // Or let caller handle null
     }
 
     const data = await response.json();
     return data.data;
   } catch (error) {
-    console.error("❌ Erreur récupération anime:", error);
-    throw error;
+    console.warn(`⚠️ Jikan API error for ID ${id}:`, error);
+    return null as any;
   }
 }
 
@@ -184,14 +186,15 @@ export async function getTopAnimes(
     );
 
     if (!response.ok) {
-      throw new Error(`Erreur Jikan: ${response.status}`);
+      console.warn(`⚠️ Jikan API returned status ${response.status} for top animes`);
+      return { data: [], pagination: { last_visible_page: 1, has_next_page: false, current_page: 1, items: { count: 0, total: 0, per_page: limit } } };
     }
 
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("❌ Erreur top animes:", error);
-    throw error;
+    console.warn("⚠️ Jikan API top animes error:", error);
+    return { data: [], pagination: { last_visible_page: 1, has_next_page: false, current_page: 1, items: { count: 0, total: 0, per_page: limit } } };
   }
 }
 
@@ -203,14 +206,15 @@ export async function getAnimeCharacters(id: number): Promise<JikanCharacter[]> 
     const response = await fetchWithRetry(`${JIKAN_BASE_URL}/anime/${id}/characters`);
 
     if (!response.ok) {
-      throw new Error(`Erreur Jikan: ${response.status}`);
+      console.warn(`⚠️ Jikan API returned status ${response.status} for characters of ID ${id}`);
+      return [];
     }
 
     const data = await response.json();
     return data.data || [];
   } catch (error) {
-    console.error("❌ Erreur récupération personnages:", error);
-    throw error;
+    console.warn(`⚠️ Jikan API characters error for ID ${id}:`, error);
+    return [];
   }
 }
 
@@ -222,14 +226,15 @@ export async function getCurrentSeasonAnimes(): Promise<JikanSearchResponse> {
     const response = await fetchWithRetry(`${JIKAN_BASE_URL}/seasons/now?limit=25`);
 
     if (!response.ok) {
-      throw new Error(`Erreur Jikan: ${response.status}`);
+      console.warn(`⚠️ Jikan API returned status ${response.status} for current season`);
+      return { data: [], pagination: { last_visible_page: 1, has_next_page: false, current_page: 1, items: { count: 0, total: 0, per_page: 25 } } };
     }
 
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("❌ Erreur saison actuelle:", error);
-    throw error;
+    console.warn("⚠️ Jikan API current season error:", error);
+    return { data: [], pagination: { last_visible_page: 1, has_next_page: false, current_page: 1, items: { count: 0, total: 0, per_page: 25 } } };
   }
 }
 

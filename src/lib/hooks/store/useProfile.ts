@@ -153,6 +153,11 @@ export function useProfile(uid: string | undefined) {
         setIsEditing(false);
         setPreview(null);
         setAvatarFile(null);
+
+        // 🔄 Recharger la page après un court délai pour actualiser le header global
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
       } catch (err) {
         console.error("❌ Erreur mise à jour :", err);
         setMessage({ type: "error", text: "❌ Une erreur est survenue. Réessayez." });

@@ -1,89 +1,57 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Bell, User, LogOut } from "lucide-react";
-import { NAV_ITEMS } from "./navConstants";
-import logo from "@/assets/logo.png";
+import { Bell, User, LogIn, Moon, Sun, Search } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/lib/hooks/store/auth/useauth";
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 interface TopBarProps {
   notifCount?: number;
   onToggleSidebar?: () => void;
 }
 
-// ── Sous-composant : Boutons Auth directs ─────────────────────────
+/**
+ * Boutons d'authentification pour les utilisateurs non connectés.
+ */
 function AuthButtons() {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      {/* Se connecter - Bouton outline */}
+    <div className="flex items-center gap-2">
       <MotionLink
         href="/login"
-        whileHover={{ scale: 1.02, background: "rgba(255,107,26,0.15)" }}
+        whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        style={{
-          padding: "8px 16px",
-          borderRadius: 8,
-          textDecoration: "none",
-          color: "#FF6B1A",
-          fontSize: 13,
-          fontWeight: 600,
-          border: "1px solid rgba(255,107,26,0.4)",
-          background: "transparent",
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          transition: "all 0.2s"
-        }}
+        className="flex items-center gap-1.5 rounded-xl border border-border/80 px-4 py-2 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-white hover:border-primary/40 no-underline"
       >
-        <LogOut size={14} style={{ transform: "rotate(180deg)" }} />
+        <LogIn size={14} />
         Se connecter
       </MotionLink>
 
-      {/* S'inscrire - Bouton plein */}
       <MotionLink
         href="/register"
-        whileHover={{ scale: 1.02, background: "#FF5700" }}
+        whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        style={{
-          padding: "8px 16px",
-          borderRadius: 8,
-          textDecoration: "none",
-          color: "#fff",
-          fontSize: 13,
-          fontWeight: 600,
-          background: "linear-gradient(135deg, #FF6B1A, #FF4500)",
-          border: "1px solid transparent",
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          boxShadow: "0 2px 12px rgba(255,107,26,0.3)",
-          transition: "all 0.2s"
-        }}
+        className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-[13px] font-semibold text-white shadow-md shadow-violet-500/25 transition-all hover:bg-violet-600 no-underline"
       >
         <User size={14} />
-        S'inscrire
+        Rejoindre
       </MotionLink>
     </div>
   );
 }
 
-// ── Sous-composant : Avatar Dynamique ─────────────────────────
+/**
+ * Avatar dynamique de l'utilisateur connecté.
+ */
 function ProfileAvatar() {
   const { user, isInitializing } = useAuth();
 
   if (isInitializing) {
-    return (
-      <div style={{ 
-        width: 32, height: 32, borderRadius: "50%", 
-        background: "rgba(255,255,255,0.1)", 
-        animation: "pulse 1.5s infinite ease-in-out" 
-      }} />
-    );
+    return <div className="size-8 animate-pulse rounded-full bg-muted" />;
   }
 
   if (!user) return null;
@@ -93,118 +61,156 @@ function ProfileAvatar() {
 
   if (user.photoURL) {
     return (
-      <motion.div
-        whileHover={{ scale: 1.05 }}
-        style={{ position: "relative", cursor: "pointer" }}
-      >
+      <MotionLink href="/profile" whileHover={{ scale: 1.05 }} className="cursor-pointer block no-underline">
         <Image
           src={user.photoURL}
-          alt="Avatar"
-          style={{ borderRadius: "50%", objectFit: "cover" }}
-          priority
+          alt={name}
           width={32}
           height={32}
+          priority
+          className="size-8 rounded-full object-cover border border-primary/40"
+          unoptimized
         />
-      </motion.div>
+      </MotionLink>
     );
   }
 
   return (
-    <motion.div
+    <MotionLink
+      href="/profile"
       whileHover={{ scale: 1.05 }}
-      style={{
-        width: 32, height: 32, borderRadius: "50%",
-        background: "linear-gradient(135deg, #FF6B1A, #FF4500)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 11, fontWeight: 700, color: "#fff",
-        boxShadow: "0 2px 8px rgba(255,107,26,0.3)",
-        cursor: "pointer"
-      }}
       title={name}
+      className="flex size-8 cursor-pointer items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white shadow-md shadow-violet-500/25 no-underline"
     >
       {initials}
-    </motion.div>
+    </MotionLink>
   );
 }
 
-// ── Composant Principal TopBar ──────────────────────────────
-export default function TopBar({ notifCount = 0, onToggleSidebar }: TopBarProps) {
+/**
+ * Formulaire de recherche générale pour Desktop / Tablette.
+ */
+function GlobalSearchBar() {
+  const [term, setTerm] = useState("");
+  const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!term.trim()) return;
+    router.push(`/search?q=${encodeURIComponent(term.trim())}`);
+  };
+
+  return (
+    <form onSubmit={handleSearch} className="w-full max-w-md mx-4 hidden md:block">
+      <div className="relative flex items-center">
+        <Search
+          size={16}
+          className="absolute left-3.5 text-muted-foreground pointer-events-none"
+        />
+        <input
+          type="search"
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+          placeholder="Rechercher un anime, un manga..."
+          className="w-full h-9 pl-9 pr-4 rounded-xl border border-border/80 bg-card/70 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/40 transition-all"
+        />
+      </div>
+    </form>
+  );
+}
+
+/**
+ * Barre de navigation supérieure (TopBar) pour Desktop & Tablette.
+ */
+export default function TopBar({ notifCount = 0 }: TopBarProps) {
   const pathname = usePathname();
   const { user, isInitializing } = useAuth();
   const isAuth = !!user && !isInitializing;
+  const onNotifs = pathname === "/notifications";
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved === "light") {
+      setTheme("light");
+    } else {
+      setTheme("dark");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    if (next === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("theme", next);
+    setTheme(next);
+  };
 
   return (
-    <header style={{
-      position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: 60,
-      display: "flex", alignItems: "center", padding: "0 24px", gap: 16,
-      background: "rgba(5,5,8,0.92)", backdropFilter: "blur(20px)",
-      borderBottom: "1px solid rgba(255,255,255,0.06)",
-    }}>
-
-      {/* ── Logo ── */}
+    <header className="fixed inset-x-0 top-0 z-50 flex h-[60px] items-center justify-between border-b border-border/80 bg-[#0a0e27]/90 px-6 backdrop-blur-xl transition-colors duration-300">
+      {/* ── Logo Nekama ── */}
       <MotionLink
         href="/feed"
-        whileHover={{ opacity: 0.8 }}
+        whileHover={{ opacity: 0.85 }}
         whileTap={{ scale: 0.97 }}
-        style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", flexShrink: 0 }}
+        className="flex shrink-0 flex-col no-underline group"
       >
-        <Image src={logo} alt="Logo" width={100} height={42} priority style={{ width: 'auto', height: 'auto' }} />
+        <span className="font-heading text-lg font-black tracking-tight text-white group-hover:text-primary transition-colors">
+          Nekama
+        </span>
+        <span className="text-[9px] -mt-1 font-medium tracking-widest text-primary/80">
+          ネカマ
+        </span>
       </MotionLink>
 
-      {/* ── Spacer ── */}
-      <div style={{ flex: 1 }} />
+      {/* ── Barre de recherche globale ── */}
+      <GlobalSearchBar />
 
       {/* ── Droite (Actions) ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+      <div className="flex shrink-0 items-center gap-3">
+        {/* Toggle thème */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-xl border border-border/80 bg-muted/40 hover:bg-muted text-foreground transition-all"
+          aria-label="Changer de thème"
+        >
+          {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+        </button>
 
-        {/* 🔹 Si NON connecté → Boutons Auth directs */}
         {!isAuth && <AuthButtons />}
 
-        {/* 🔹 Si connecté → Notifications + Avatar */}
         {isAuth && (
           <>
             <MotionLink
               href="/notifications"
-              whileHover={{ background: "rgba(255,255,255,0.07)" }}
               whileTap={{ scale: 0.9 }}
-              style={{
-                position: "relative", textDecoration: "none",
-                width: 40, height: 40, borderRadius: 10,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                background: pathname === "/notifications" ? "rgba(255,107,26,0.1)" : "transparent",
-                border: pathname === "/notifications" ? "1px solid rgba(255,107,26,0.25)" : "1px solid transparent",
-                transition: "all .2s",
-              }}
+              aria-label={
+                notifCount > 0 ? `Notifications (${notifCount} non lues)` : "Notifications"
+              }
+              aria-current={onNotifs ? "page" : undefined}
+              className={`relative flex size-9 items-center justify-center rounded-xl border transition-colors ${
+                onNotifs
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-border/80 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-white"
+              }`}
             >
-              <Bell size={19} color={pathname === "/notifications" ? "#FF6B1A" : "rgba(255,255,255,0.55)"} />
+              <Bell size={18} />
               {notifCount > 0 && (
-                <span style={{
-                  position: "absolute", top: -3, right: -3,
-                  minWidth: 16, height: 16, borderRadius: 99,
-                  background: "#FF6B1A", color: "#fff",
-                  fontSize: 9, fontWeight: 700,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  padding: "0 3px", border: "2px solid #050508",
-                }}>
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-background bg-[#EF4444] px-1 text-[9px] font-bold text-white shadow-sm">
                   {notifCount > 9 ? "9+" : notifCount}
                 </span>
               )}
             </MotionLink>
 
+            <div className="h-5 w-px bg-border mx-1" />
+
             <ProfileAvatar />
           </>
         )}
-
-        {/* Séparateur */}
-        <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.08)" }} />
       </div>
-      
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 0.4; }
-          50% { opacity: 0.8; }
-        }
-      `}</style>
     </header>
   );
 }
