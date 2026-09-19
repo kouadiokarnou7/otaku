@@ -45,6 +45,33 @@ export default function RootLayout({
       className={cn("dark", montserrat.variable, inter.variable, notoJp.variable)}
       suppressHydrationWarning
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var color = localStorage.getItem('nekama_theme_color');
+                  if (color) {
+                    document.documentElement.style.setProperty('--primary', color);
+                    document.documentElement.style.setProperty('--ring', color);
+                    document.documentElement.style.setProperty('--accent', color);
+                  }
+                  var bg = localStorage.getItem('nekama_bg_color');
+                  if (bg) {
+                    document.documentElement.style.setProperty('--background', bg);
+                  }
+                  var card = localStorage.getItem('nekama_card_color');
+                  if (card) {
+                    document.documentElement.style.setProperty('--card', card);
+                    document.documentElement.style.setProperty('--popover', card);
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   );

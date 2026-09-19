@@ -4,12 +4,32 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/store/auth/useauth";
 import { useProfile } from "@/lib/hooks/store/useProfile";
 import { usePost } from "@/lib/hooks/store/usePost";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { Settings, ArrowLeft, Edit3, CheckCircle2, PlayCircle, XCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Settings,
+  ArrowLeft,
+  Edit3,
+  CheckCircle2,
+  PlayCircle,
+  XCircle,
+  LogOut,
+  Trash2,
+  Palette,
+  AlertTriangle,
+  X,
+  Camera,
+  ImagePlus,
+  Loader2,
+} from "lucide-react";
 import PostCard from "@/components/features/feed/Postcard";
+import { THEME_COLORS, applyThemeColor, getSavedThemeColor } from "@/lib/theme/themeColors";
+import { uploadAvatar } from "@/lib/firebase/storage";
+import { updateProfile } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase/firebaseconfig";
 
 const TABS = [
   { key: "posts", label: "Publications" },
@@ -58,7 +78,7 @@ const DEMO_WATCHLIST = [
 
 export default function UserProfilePage() {
   const params = useParams();
-  const { user, isInitializing } = useAuth();
+  const { user, isInitializing, logout, deleteAccount } = useAuth();
   const userId = (params?.userId as string | undefined) ?? user?.uid;
   const { profile, fetching } = useProfile(userId);
   const { posts, toggleLike } = usePost(userId);
@@ -66,6 +86,88 @@ export default function UserProfilePage() {
 
   const [activeTab, setActiveTab] = useState<TabKey>("posts");
   const [watchlistFilter, setWatchlistFilter] = useState<WatchlistFilter>("watching");
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    try {
+      const savedBanner = localStorage.getItem(`nekama_banner_${userId}`);
+      if (savedBanner) {
+        setBannerUrl(savedBanner);
+      }
+      const savedAvatar = localStorage.getItem(`nekama_avatar_${userId}`);
+      if (savedAvatar) {
+        setAvatarPreview(savedAvatar);
+      }
+    } catch (e) {
+      console.warn("Erreur chargement images locales", e);
+    }
+  }, [userId]);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("L'image ne doit pas dépasser 5 Mo.");
+      return;
+    }
+
+    // Affichage instantané
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = reader.result as string;
+      setAvatarPreview(base64);
+      try {
+        localStorage.setItem(`nekama_avatar_${userId}`, base64);
+      } catch (err) {
+        console.warn("Erreur sauvegarde locale avatar", err);
+      }
+    };
+    reader.readAsDataURL(file);
+
+    // Synchronisation Firebase Auth & Firestore
+    setIsUploadingAvatar(true);
+    try {
+      const photoURL = await uploadAvatar(userId, file);
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { photoURL });
+      }
+      await setDoc(
+        doc(db, "users", userId),
+        { photoURL, updatedAt: serverTimestamp() },
+        { merge: true }
+      );
+    } catch (err) {
+      console.warn("Upload Firebase Storage échoué (sauvegarde locale maintenue):", err);
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("L'image ne doit pas dépasser 5 Mo.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setBannerUrl(base64);
+      try {
+        localStorage.setItem(`nekama_banner_${userId}`, base64);
+      } catch (err) {
+        console.warn("Erreur sauvegarde bannière locale", err);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   if (isInitializing || fetching || !userId) {
     return (
@@ -107,9 +209,34 @@ export default function UserProfilePage() {
 
   return (
     <div className="max-w-xl mx-auto pb-24 text-foreground">
-      {/* ── 1. Bannière & Navigation Haute (Écran 4) ── */}
-      <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-gradient-to-b from-[#191e47] to-[#0a0e27]">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-700/30 via-[#0a0e27]/80 to-[#0a0e27]" />
+      {/* ── 1. Bannière & Navigation Haute avec Image de fond personnalisée selon l'utilisateur ── */}
+      <div
+        className="relative h-48 sm:h-56 w-full overflow-hidden bg-[#0d1238]"
+        style={{
+          backgroundImage: bannerUrl ? `url('${bannerUrl}')` : undefined,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        {/* Image personnalisée par l'utilisateur ou ambiance d'attente */}
+        {bannerUrl ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={bannerUrl}
+            alt="Bannière personnalisée"
+            className="absolute inset-0 size-full object-cover object-center transition-transform duration-700 hover:scale-105"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-tr from-violet-950/80 via-[#0a0e27] to-indigo-950/60 flex items-center justify-center">
+            <div className="text-center opacity-40">
+              <ImagePlus size={32} className="mx-auto mb-1 text-primary" />
+              <p className="text-[11px] font-medium text-white">Personnalise ton image de fond</p>
+            </div>
+          </div>
+        )}
+
+        {/* Calque dégradé pour contraster avec l'avatar et les textes */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-[#0a0e27]" />
         
         {/* Barre d'action supérieure */}
         <div className="absolute top-3 inset-x-3 flex items-center justify-between z-10">
@@ -130,27 +257,71 @@ export default function UserProfilePage() {
             </Link>
           )}
         </div>
+
+        {/* Bouton avec icône pour mettre un fond d'image selon l'utilisateur */}
+        {isOwnProfile && (
+          <label
+            htmlFor="user-banner-upload"
+            className="absolute bottom-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white text-xs font-semibold shadow-lg cursor-pointer transition-all hover:scale-105 active:scale-95"
+            title="Mettre une image de fond selon vos préférences"
+          >
+            <Camera size={14} className="text-primary" />
+            <span className="hidden sm:inline">Changer l&apos;image de fond</span>
+            <input
+              id="user-banner-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleBannerChange}
+              className="hidden"
+            />
+          </label>
+        )}
       </div>
 
       {/* ── 2. Avatar & En-tête Utilisateur (Écran 4) ── */}
       <div className="relative px-4 -mt-14 space-y-4">
         <div className="flex items-end justify-between">
-          {/* Avatar cerclé de néon violet */}
+          {/* Avatar cerclé avec badge icône de photo / caméra */}
           <div className="relative size-24 rounded-full p-[3px] bg-gradient-to-tr from-violet-600 via-primary to-fuchsia-500 shadow-[0_0_20px_rgba(139,92,246,0.4)]">
             <div className="size-full rounded-full overflow-hidden bg-[#0a0e27] relative">
               <Image
                 src={
+                  avatarPreview ||
                   profile.photoURL ||
                   `https://ui-avatars.com/api/?name=${encodeURIComponent(
                     profile.displayName || "Otaku"
                   )}&background=8B5CF6&color=fff&size=200`
                 }
-                alt={profile.displayName}
+                alt={profile.displayName || "Avatar"}
                 fill
                 sizes="96px"
                 className="object-cover"
+                unoptimized={!!avatarPreview}
               />
             </div>
+
+            {/* Badge icône photo / caméra pour changer la photo de profil */}
+            {isOwnProfile && (
+              <label
+                htmlFor="user-avatar-upload"
+                title="Changer la photo de profil"
+                className="absolute -bottom-1 -right-1 z-20 flex size-8 items-center justify-center rounded-full bg-emerald-500 hover:bg-emerald-400 text-white shadow-lg cursor-pointer border-2 border-[#0a0e27] transition-all hover:scale-110 active:scale-95"
+              >
+                {isUploadingAvatar ? (
+                  <Loader2 size={14} className="animate-spin text-white" />
+                ) : (
+                  <Camera size={15} className="text-white" />
+                )}
+                <input
+                  id="user-avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                  disabled={isUploadingAvatar}
+                />
+              </label>
+            )}
           </div>
 
           {/* Bouton Modifier le profil */}
@@ -219,7 +390,7 @@ export default function UserProfilePage() {
               {activeTab === tab.key && (
                 <motion.div
                   layoutId="profile-tab-indicator"
-                  className="absolute bottom-0 inset-x-4 h-0.5 bg-primary shadow-[0_0_8px_#8B5CF6]"
+                  className="absolute bottom-0 inset-x-4 h-0.5 bg-primary shadow-[0_0_8px_var(--primary)]"
                 />
               )}
             </button>

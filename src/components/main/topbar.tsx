@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { Bell, User, LogIn, Moon, Sun, Search } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Bell, User, LogIn, LogOut, Moon, Sun, Search, Settings, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/lib/hooks/store/auth/useauth";
+import { getFavoriteAccentColor } from "@/lib/theme/themeColors";
 
 const MotionLink = motion.create(Link);
 
@@ -45,45 +46,116 @@ function AuthButtons() {
 }
 
 /**
- * Avatar dynamique de l'utilisateur connecté.
+ * Menu déroulant du profil utilisateur dans le header :
+ * Défile Mon profil, Paramètres et Déconnexion.
  */
-function ProfileAvatar() {
-  const { user, isInitializing } = useAuth();
+function ProfileDropdown() {
+  const { user, isInitializing, logout } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  if (isInitializing) {
-    return <div className="size-8 animate-pulse rounded-full bg-muted" />;
-  }
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
 
-  if (!user) return null;
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
-  const name = user.displayName || user.email || "U";
+  if (isInitializing || !user) return null;
+
+  const name = user.displayName || user.email || "Otaku";
   const initials = name.slice(0, 2).toUpperCase();
 
-  if (user.photoURL) {
-    return (
-      <MotionLink href="/profile" whileHover={{ scale: 1.05 }} className="cursor-pointer block no-underline">
-        <Image
-          src={user.photoURL}
-          alt={name}
-          width={32}
-          height={32}
-          priority
-          className="size-8 rounded-full object-cover border border-primary/40"
-          unoptimized
-        />
-      </MotionLink>
-    );
-  }
-
   return (
-    <MotionLink
-      href="/profile"
-      whileHover={{ scale: 1.05 }}
-      title={name}
-      className="flex size-8 cursor-pointer items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white shadow-md shadow-violet-500/25 no-underline"
-    >
-      {initials}
-    </MotionLink>
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-expanded={isOpen}
+        aria-label="Menu du profil"
+        className="cursor-pointer block rounded-full focus:outline-none ring-2 ring-transparent hover:ring-primary/50 transition-all"
+      >
+        {user.photoURL ? (
+          <Image
+            src={user.photoURL}
+            alt={name}
+            width={34}
+            height={34}
+            priority
+            className="size-8 rounded-full object-cover border border-primary/40 shadow-sm"
+            unoptimized
+          />
+        ) : (
+          <div className="flex size-8 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white shadow-md shadow-violet-500/25">
+            {initials}
+          </div>
+        )}
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 mt-2 w-56 rounded-2xl border border-border/90 bg-[#0e1338]/95 p-2 shadow-2xl backdrop-blur-xl z-50 text-foreground"
+          >
+            {/* En-tête de prévisualisation du profil */}
+            <div className="px-3 py-2 border-b border-border/60 mb-1.5">
+              <p className="text-xs font-bold text-white truncate">{name}</p>
+              <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+            </div>
+
+            {/* Lien Mon profil */}
+            <Link
+              href="/profile"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-white hover:bg-card/80 rounded-xl transition-colors no-underline"
+            >
+              <User size={15} className="text-primary" />
+              <span>Mon Profil</span>
+            </Link>
+
+            {/* Lien Paramètres */}
+            <Link
+              href="/settings"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-white hover:bg-card/80 rounded-xl transition-colors no-underline"
+            >
+              <Settings size={15} className="text-primary" />
+              <span>Paramètres</span>
+            </Link>
+
+            <div className="h-px bg-border/60 my-1" />
+
+            {/* Action Se déconnecter */}
+            <button
+              type="button"
+              onClick={async () => {
+                setIsOpen(false);
+                await logout();
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors"
+            >
+              <LogOut size={15} />
+              <span>Se déconnecter</span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -124,7 +196,7 @@ function GlobalSearchBar() {
  */
 export default function TopBar({ notifCount = 0 }: TopBarProps) {
   const pathname = usePathname();
-  const { user, isInitializing } = useAuth();
+  const { user, isInitializing, logout } = useAuth();
   const isAuth = !!user && !isInitializing;
   const onNotifs = pathname === "/notifications";
   const [theme, setTheme] = useState<"light" | "dark">("dark");
@@ -150,7 +222,7 @@ export default function TopBar({ notifCount = 0 }: TopBarProps) {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 flex h-[60px] items-center justify-between border-b border-border/80 bg-[#0a0e27]/90 px-6 backdrop-blur-xl transition-colors duration-300">
+    <header className="fixed inset-x-0 top-0 z-50 flex h-[60px] items-center justify-between border-b border-border/80 bg-background/90 px-6 backdrop-blur-xl transition-colors duration-300">
       {/* ── Logo Nekama ── */}
       <MotionLink
         href="/feed"
@@ -169,13 +241,24 @@ export default function TopBar({ notifCount = 0 }: TopBarProps) {
       {/* ── Barre de recherche globale ── */}
       <GlobalSearchBar />
 
-      {/* ── Droite (Actions) ── */}
-      <div className="flex shrink-0 items-center gap-3">
-        {/* Toggle thème */}
+      {/* ── Droite (Actions & Profil) ── */}
+      <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+        {/* Indicateur de couleur favorite / raccourci vers les paramètres */}
+        <Link
+          href="/settings"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-border/70 bg-card/60 text-xs font-semibold text-muted-foreground hover:text-white hover:border-primary/50 transition-all no-underline"
+          title="Couleur d'accent active — Personnaliser dans Paramètres"
+        >
+          <span className="size-2.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
+          <span className="hidden lg:inline text-[11px] font-medium text-foreground/80">Thème</span>
+        </Link>
+
+        {/* Toggle thème clair/sombre */}
         <button
           onClick={toggleTheme}
           className="p-2 rounded-xl border border-border/80 bg-muted/40 hover:bg-muted text-foreground transition-all"
           aria-label="Changer de thème"
+          title={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
         >
           {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
         </button>
@@ -205,9 +288,10 @@ export default function TopBar({ notifCount = 0 }: TopBarProps) {
               )}
             </MotionLink>
 
-            <div className="h-5 w-px bg-border mx-1" />
+            <div className="h-5 w-px bg-border mx-0.5" />
 
-            <ProfileAvatar />
+            {/* Menu déroulant au clic sur l'avatar du profil */}
+            <ProfileDropdown />
           </>
         )}
       </div>

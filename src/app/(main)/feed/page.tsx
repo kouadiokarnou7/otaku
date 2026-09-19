@@ -162,7 +162,7 @@ export default function FeedPage() {
             onClick={() => setShowComposer(true)}
             className="flex-1 text-left px-4 py-2.5 rounded-xl border border-border/70 bg-background/60 text-xs text-muted-foreground hover:border-primary/40 hover:text-white transition-all shadow-inner"
           >
-            Quoi de neuf, otaku ? Partage ton avis... ✨
+            Quoi de neuf, otaku ? Partage ton avis... 
           </button>
           <button
             type="button"

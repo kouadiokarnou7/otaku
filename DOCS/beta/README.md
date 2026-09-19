@@ -6,14 +6,13 @@ Phase de développement initiale. Le produit n'est pas stabilisé : le modèle d
 
 | Version | Date | Titre | État |
 |---------|------|-------|------|
-| [v0.2.0](v0.2.0.md) | 2026-08-11 | Durcissement sécurité | ⚠️ Livrée, **règles Firebase à publier** |
-| [v0.1.0](v0.1.0.md) | — | État initial | Historique |
+| [v0.2.0](v0.2.0.md) | 2026-09-19 | Bêta V1 — Feed interactif, Sondages, Thèmes & Profil | ✅ Livrée & Validée |
+| [v0.1.0](v0.1.0.md) | 2026-08-11 | Durcissement sécurité & État initial | Historique |
 
-## 🚨 État de la beta
+## 🚀 État de la beta
 
-**Le build ne passe pas.** 11 erreurs de typage antérieures à la v0.2.0 bloquent `npm run build`. Détail et liste complète dans [v0.2.0.md](v0.2.0.md#dette-connue).
-
-**La v0.2.0 n'est pas active tant que les règles Firebase ne sont pas publiées** — voir [les actions manuelles](v0.2.0.md#actions-manuelles-requises).
+- **Bêta V1 active** : Feed interactif avec sondages intégrés, thèmes personnalisables persistés, gestion d'avatar/bannière directe sur le profil, et sécurité du compte.
+- **Règles Firestore & Storage** : Couvrent l'intégrité des rôles admins et le téléversement des avatars utilisateurs.
 
 ## ➡️ Ajouter une version
 

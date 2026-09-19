@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageSquareHeart } from "lucide-react";
+import { MessageSquareHeart, LogOut } from "lucide-react";
 import { SIDEBAR_ITEMS } from "./navConstants";
 import BetaFeedbackModal from "./BetaFeedbackModal";
+import { useAuth } from "@/lib/hooks/store/auth/useauth";
 
 interface SidebarProps {
   iconOnly?: boolean;
@@ -21,12 +22,14 @@ export default function Sidebar({ iconOnly: iconOnlyProp, isExpanded = true }: S
   const pathname = usePathname();
   const iconOnly = iconOnlyProp ?? !isExpanded;
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const { user, isInitializing, logout } = useAuth();
+  const isAuth = !!user && !isInitializing;
 
   return (
     <>
       <aside
         style={{ top: 60, width: iconOnly ? 72 : 240 }}
-        className={`fixed bottom-0 left-0 z-40 flex flex-col justify-between overflow-y-auto border-r border-border/80 bg-[#0a0e27]/95 backdrop-blur-xl transition-all duration-300 ${
+        className={`fixed bottom-0 left-0 z-40 flex flex-col justify-between overflow-y-auto border-r border-border/80 bg-background/95 backdrop-blur-xl transition-all duration-300 ${
           iconOnly ? "items-center py-3" : "items-stretch p-3"
         }`}
       >
@@ -76,8 +79,9 @@ export default function Sidebar({ iconOnly: iconOnlyProp, isExpanded = true }: S
           })}
         </div>
 
-        {/* ── Section Avis / Feedback Premiers Tests ── */}
-        <div className="w-full pt-3 border-t border-border/60">
+        {/* ── Section Bas de Sidebar (Avis + Déconnexion) ── */}
+        <div className="w-full pt-3 border-t border-border/60 flex flex-col gap-2">
+          {/* Bouton Avis Bêta */}
           <button
             type="button"
             onClick={() => setIsFeedbackOpen(true)}
@@ -94,6 +98,23 @@ export default function Sidebar({ iconOnly: iconOnlyProp, isExpanded = true }: S
               </div>
             )}
           </button>
+
+          {/* Bouton Déconnexion (affiché si connecté) */}
+          {isAuth && (
+            <button
+              type="button"
+              onClick={() => logout()}
+              className={`w-full flex items-center rounded-2xl border border-border/70 bg-card/40 text-muted-foreground hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10 transition-all ${
+                iconOnly ? "size-[44px] justify-center" : "gap-2.5 px-3.5 py-2.5 text-left"
+              }`}
+              title="Se déconnecter"
+            >
+              <LogOut size={18} className="shrink-0" />
+              {!iconOnly && (
+                <span className="text-xs font-semibold">Déconnexion</span>
+              )}
+            </button>
+          )}
         </div>
       </aside>
 

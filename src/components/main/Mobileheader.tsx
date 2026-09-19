@@ -11,7 +11,7 @@ interface MobileHeaderProps {
 
 export default function MobileHeader({ notifCount = 0 }: MobileHeaderProps) {
   return (
-    <header className="fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between border-b border-border/60 bg-[#0a0e27]/90 px-4 backdrop-blur-xl md:hidden transition-colors duration-300">
+    <header className="fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between border-b border-border/60 bg-background/90 px-4 backdrop-blur-xl md:hidden transition-colors duration-300">
       {/* ── Logo Nekama ── */}
       <Link href="/feed" className="flex flex-col no-underline group">
         <span className="font-heading text-lg font-extrabold tracking-tight text-white group-hover:text-primary transition-colors">
