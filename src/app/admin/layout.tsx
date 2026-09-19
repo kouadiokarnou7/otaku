@@ -49,9 +49,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             donc aucune marge — et surtout aucun débordement horizontal
             au premier rendu, avant que le JS ne connaisse la largeur. */}
         <main
-          className={`min-w-0 flex-1 p-4 transition-[margin] duration-300 sm:p-6 lg:p-8 ${
-            isExpanded ? "md:ml-60" : "md:ml-[72px]"
-          }`}
+          className={`min-w-0 flex-1 p-4 transition-[margin] duration-300 sm:p-6 lg:p-8 ${isExpanded ? "md:ml-60" : "md:ml-[72px]"
+            }`}
         >
           {children}
         </main>

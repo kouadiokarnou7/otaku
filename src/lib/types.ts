@@ -227,8 +227,26 @@ export interface Comment {
   username: string;
   userAvatar: string | null;
   content: string;
-  createdAt: Timestamp;
+  createdAt: Timestamp | Date;
   likes: number;
+  parentId?: string | null;
+  replyToUsername?: string;
+}
+
+export type NotificationType = "like_post" | "comment_post" | "reply_comment";
+
+export interface AppNotification {
+  id: string;
+  userId: string;          // Destinataire de la notification
+  fromUid: string;         // Auteur de l'action
+  fromUsername: string;
+  fromPhotoURL?: string | null;
+  type: NotificationType;
+  postId: string;
+  commentId?: string;
+  contentPreview?: string;
+  read: boolean;
+  createdAt: Date;
 }
 
 export interface ComposerState {

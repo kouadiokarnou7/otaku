@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { motion } from "framer-motion";
-import { ArrowRight, LogIn, Swords } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, LogIn, Swords, Mail, CheckCircle2, X, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 import InputField from "@/components/auth/InputField";
 import AuthBackground from "@/components/auth/layout";
 import { loginSchema } from "@/lib/validators";
@@ -61,10 +63,50 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
 
-  const { loading, error, loginWithCredentials, loginWithGoogle } = useLogin();
+  const { loading, error, loginWithCredentials, loginWithGoogle, resetPassword } = useLogin();
+
+  // État du modal de mot de passe oublié
+  const [isForgotOpen, setIsForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [isSendingForgot, setIsSendingForgot] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [forgotError, setForgotError] = useState<string | null>(null);
 
   const identifierValue = watch("identifier") ?? "";
   const identifierType = detectIdentifierType(identifierValue);
+
+  const openForgotPasswordModal = () => {
+    if (identifierType === "email") {
+      setForgotEmail(identifierValue);
+    }
+    setForgotSuccess(false);
+    setForgotError(null);
+    setIsForgotOpen(true);
+  };
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError(null);
+    const cleanEmail = forgotEmail.trim();
+
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      setForgotError("Veuillez saisir une adresse email valide.");
+      return;
+    }
+
+    setIsSendingForgot(true);
+    try {
+      await resetPassword(cleanEmail);
+      setForgotSuccess(true);
+      toast.success("Email de réinitialisation envoyé ! Vérifie ta boîte de réception.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur lors de l'envoi de l'email.";
+      setForgotError(msg);
+      toast.error(msg);
+    } finally {
+      setIsSendingForgot(false);
+    }
+  };
 
   /**
    * Traite la soumission du formulaire d'authentification.
@@ -155,12 +197,13 @@ export default function LoginPage() {
           />
 
           <div className="text-right -mt-2">
-            <Link
-              href="#"
-              className="text-[11px] text-[#FF3E00]/70 hover:text-[#FF3E00] transition-colors no-underline font-medium"
+            <button
+              type="button"
+              onClick={openForgotPasswordModal}
+              className="text-[11px] text-[#FF3E00]/80 hover:text-[#FF3E00] hover:underline transition-colors font-medium cursor-pointer"
             >
               Mot de passe oublié ?
-            </Link>
+            </button>
           </div>
 
           <motion.button
@@ -168,7 +211,7 @@ export default function LoginPage() {
             disabled={isSubmitting || loading}
             whileHover={{ y: -1, boxShadow: "0 8px 20px rgba(255,62,0,0.25)" }}
             whileTap={{ scale: 0.97 }}
-            className="w-full py-3 rounded-xl bg-[#FF3E00] text-white text-sm font-bold flex items-center justify-center gap-2 transition-all hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed mt-1"
+            className="w-full py-3 rounded-xl bg-[#FF3E00] text-white text-sm font-bold flex items-center justify-center gap-2 transition-all hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed mt-1 cursor-pointer"
           >
             {isSubmitting || loading ? (
               <>
@@ -194,7 +237,7 @@ export default function LoginPage() {
           onClick={() => loginWithGoogle()}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.97 }}
-          className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl border border-border bg-muted/30 text-foreground text-sm font-semibold transition-all hover:bg-muted/60 hover:border-border mb-5"
+          className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl border border-border bg-muted/30 text-foreground text-sm font-semibold transition-all hover:bg-muted/60 hover:border-border mb-5 cursor-pointer"
         >
           <GoogleIcon />
           Continuer avec Google
@@ -211,6 +254,128 @@ export default function LoginPage() {
           </Link>
         </p>
       </motion.div>
+
+      {/* Modal Mot de passe oublié */}
+      <AnimatePresence>
+        {isForgotOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsForgotOpen(false)}
+              className="absolute inset-0 bg-background/80 backdrop-blur-md"
+            />
+
+            {/* Modal Dialog */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative w-full max-w-md bg-card border border-border shadow-2xl rounded-2xl p-6 sm:p-7 z-10"
+            >
+              {/* Bouton fermer */}
+              <button
+                type="button"
+                onClick={() => setIsForgotOpen(false)}
+                className="absolute top-4 right-4 p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                aria-label="Fermer"
+              >
+                <X size={18} />
+              </button>
+
+              {forgotSuccess ? (
+                <div className="text-center py-4 flex flex-col items-center">
+                  <div className="size-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4">
+                    <CheckCircle2 size={24} />
+                  </div>
+                  <h2 className="text-lg font-bold text-foreground mb-2">
+                    Vérifie ta boîte de réception
+                  </h2>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-6 max-w-xs">
+                    Un email contenant un lien pour réinitialiser ton mot de passe a été envoyé à{" "}
+                    <span className="font-semibold text-foreground">{forgotEmail}</span>.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setIsForgotOpen(false)}
+                    className="w-full py-2.5 rounded-xl bg-muted text-foreground text-xs font-bold hover:bg-muted/80 transition-colors"
+                  >
+                    Retour à la connexion
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleForgotSubmit} className="flex flex-col gap-4">
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="size-10 rounded-xl bg-[#FF3E00]/10 border border-[#FF3E00]/20 text-[#FF3E00] flex items-center justify-center shrink-0">
+                      <Mail size={18} />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-bold text-foreground">
+                        Mot de passe oublié ?
+                      </h2>
+                      <p className="text-xs text-muted-foreground">
+                        Reçois un lien de réinitialisation sécurisé.
+                      </p>
+                    </div>
+                  </div>
+
+                  {forgotError && (
+                    <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+                      <AlertCircle size={14} className="shrink-0" />
+                      <span>{forgotError}</span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-foreground">
+                      Adresse email du compte
+                    </label>
+                    <input
+                      type="email"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      placeholder="nakama@exemple.com"
+                      autoFocus
+                      required
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-background/50 border border-border text-foreground text-xs focus:outline-none focus:border-[#FF3E00] focus:ring-1 focus:ring-[#FF3E00] transition-colors"
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      Si tu utilisais un pseudo, indique l&apos;adresse email liée à ce compte.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2.5 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsForgotOpen(false)}
+                      className="flex-1 py-2.5 rounded-xl border border-border text-foreground text-xs font-semibold hover:bg-muted/40 transition-colors"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSendingForgot}
+                      className="flex-1 py-2.5 rounded-xl bg-[#FF3E00] text-white text-xs font-bold hover:bg-orange-600 disabled:opacity-50 flex items-center justify-center gap-2 transition-all shadow-md shadow-[#FF3E00]/20"
+                    >
+                      {isSendingForgot ? (
+                        <>
+                          <span className="size-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Envoi...
+                        </>
+                      ) : (
+                        "Envoyer le lien"
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

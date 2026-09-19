@@ -6,13 +6,19 @@ import MobileHeader from "./Mobileheader";
 import BottomBar from "./Bottombar";
 import TopBar from "./topbar";
 import Sidebar from "./sidebar";
+import { useAuth } from "@/lib/hooks/store/auth/useauth";
+import { useNotifications } from "@/lib/hooks/store/useNotifications";
 
 interface AppLayoutProps {
   children: ReactNode;
   notifCount?: number;
 }
 
-export default function AppLayout({ children, notifCount = 0 }: AppLayoutProps) {
+export default function AppLayout({ children, notifCount }: AppLayoutProps) {
+  const { user } = useAuth();
+  const { unreadCount } = useNotifications(user?.uid);
+  const effectiveNotifCount = notifCount !== undefined ? notifCount : unreadCount;
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -37,12 +43,12 @@ export default function AppLayout({ children, notifCount = 0 }: AppLayoutProps) 
     <div className="min-h-screen bg-background text-foreground">
       {/* ── Mobile uniquement : header logo + cloche ── */}
       <div className="block md:hidden">
-        <MobileHeader notifCount={notifCount} onMenuToggle={() => setIsMenuOpen(!isMenuOpen)} />
+        <MobileHeader notifCount={effectiveNotifCount} onMenuToggle={() => setIsMenuOpen(!isMenuOpen)} />
       </div>
 
       {/* ── Desktop + Tablette : top bar complète ── */}
       <div className="hidden md:block">
-        <TopBar notifCount={notifCount} onToggleSidebar={() => setIsExpanded(!isExpanded)} />
+        <TopBar notifCount={effectiveNotifCount} onToggleSidebar={() => setIsExpanded(!isExpanded)} />
       </div>
 
       <div className="flex min-h-[calc(100vh-56px)] flex-1 md:min-h-[calc(100vh-60px)]">

@@ -1,9 +1,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { updateProfile } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/firebaseconfig";
 import { uploadAvatar } from "@/lib/firebase/storage";
+import { compressImage } from "@/lib/utils/imageCompressor";
 import type {
   UserProfile,
   ProfileFormData,
@@ -31,44 +32,54 @@ export function useProfile(uid: string | undefined) {
   const [fetching, setFetching] = useState(true);
   const [message, setMessage] = useState<FeedbackMessage>({ type: "", text: "" });
  
-  // ── Chargement initial depuis Firestore ─────────────────────
+  // ── Synchronisation temps réel depuis Firestore ─────────────────────
   useEffect(() => {
-    if (!uid) return;
+    if (!uid) {
+      setFetching(false);
+      return;
+    }
  
-    const fetchProfile = async () => {
-      setFetching(true);
-      try {
-        const snap = await getDoc(doc(db, "users", uid));
+    setFetching(true);
+    const userDocRef = doc(db, "users", uid);
+
+    const unsubscribe = onSnapshot(
+      userDocRef,
+      (snap) => {
         const user = auth.currentUser;
- 
+        const data = snap.data();
+        let localAvatar: string | null = null;
+        try {
+          localAvatar = localStorage.getItem(`nekama_avatar_${uid}`);
+        } catch (e) {}
+
         const base: UserProfile = {
           uid,
-          username: snap.data()?.username || "",
-          displayName: user?.displayName || snap.data()?.displayName || "",
+          username: data?.username || user?.displayName || "",
+          displayName: data?.displayName || user?.displayName || "",
           email: user?.email || "",
-          photoURL: user?.photoURL || snap.data()?.photoURL || null,
-          bio: snap.data()?.bio || "",
-          phone: snap.data()?.phone || "",
-          // Défaut prudent : en l'absence de rôle en base, on suppose "user"
-          role: snap.data()?.role === "admin" ? "admin" : "user",
-          createdAt: snap.data()?.createdAt?.toDate() || null,
-          stats: snap.data()?.stats || DEFAULT_STATS,
+          photoURL: localAvatar || data?.photoURL || data?.avatarUrl || data?.avatar || user?.photoURL || null,
+          bio: data?.bio || "",
+          phone: data?.phone || "",
+          role: data?.role === "admin" ? "admin" : "user",
+          createdAt: data?.createdAt?.toDate() || null,
+          stats: data?.stats || DEFAULT_STATS,
         };
- 
+
         setProfile(base);
         setFormData({
           displayName: base.displayName,
           bio: base.bio,
           phone: base.phone,
         });
-      } catch (err) {
-        console.error("❌ Erreur chargement profil :", err);
-      } finally {
+        setFetching(false);
+      },
+      (err) => {
+        console.error("❌ Erreur écoute profil :", err);
         setFetching(false);
       }
-    };
- 
-    fetchProfile();
+    );
+
+    return () => unsubscribe();
   }, [uid]);
  
   // ── Gestion champ formulaire ─────────────────────────────────
@@ -119,20 +130,47 @@ export function useProfile(uid: string | undefined) {
       try {
         let photoURL = profile?.photoURL || "";
 
-          if (avatarFile && avatarFile instanceof File) {
-            // ✅ TS sait maintenant que avatarFile est de type File
-            photoURL = await uploadAvatar(user.uid, avatarFile);
+        if (avatarFile && avatarFile instanceof File) {
+          try {
+            const { base64, file: compressedFile } = await compressImage(avatarFile, 320, 0.82);
+            photoURL = base64;
+            try {
+              const storageUrl = await uploadAvatar(user.uid, compressedFile);
+              if (storageUrl) {
+                photoURL = storageUrl;
+              }
+            } catch (storageErr) {
+              console.warn("Storage non disponible, utilisation du format compressé:", storageErr);
+            }
+          } catch (compressErr) {
+            console.warn("Erreur compression, tentative upload direct:", compressErr);
+            try {
+              photoURL = await uploadAvatar(user.uid, avatarFile);
+            } catch (e) {}
           }
-        // Mise à jour Firebase Auth
-        await updateProfile(user, {
-          displayName: formData.displayName,
-          photoURL: photoURL || null,
-        });
+        }
+
+        if (photoURL) {
+          try {
+            localStorage.setItem(`nekama_avatar_${user.uid}`, photoURL);
+          } catch (e) {}
+        }
+
+        // Mise à jour Firebase Auth (uniquement si URL HTTP valide, sinon Auth rejette les data: URLs)
+        try {
+          await updateProfile(user, {
+            displayName: formData.displayName,
+            photoURL: photoURL.startsWith("http") ? photoURL : undefined,
+          });
+        } catch (authErr) {
+          console.warn("Mise à jour Auth profil ignorée:", authErr);
+        }
         
         // Mise à jour Firestore
         await setDoc(
           doc(db, "users", user.uid),
           {
+            uid: user.uid,
             displayName: formData.displayName,
             bio: formData.bio,
             phone: formData.phone,

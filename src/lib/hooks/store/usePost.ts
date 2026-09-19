@@ -9,12 +9,15 @@ import {
   serverTimestamp,
   where,
   doc,
+  getDoc,
+  deleteDoc,
   increment,
   writeBatch,
   onSnapshot,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase/firebaseconfig";
-import type { Post } from "@/lib/types";
+import { db, auth } from "@/lib/firebase/firebaseconfig";
+import type { Post, Comment } from "@/lib/types";
+import { sendNotification } from "@/lib/hooks/store/useNotifications";
 
 /**
  * Hook personnalisé pour gérer les posts
@@ -49,17 +52,20 @@ export const usePost = (uid: string | undefined) => {
     setError(null);
 
     try {
-      const userSnap = await getDocs(
-        query(collection(db, "users"), where("uid", "==", uid))
-      );
-      
-      let username = "Anonymous";
-      let photoURL = null;
-      
-      if (!userSnap.empty) {
-        const userData = userSnap.docs[0].data();
-        username = userData.username || userData.displayName || "Anonymous";
-        photoURL = userData.photoURL || null;
+      // Résolution fiable du profil de l'auteur (Firestore doc + auth.currentUser en secours)
+      const currentUser = auth.currentUser;
+      let username = currentUser?.displayName || currentUser?.email?.split('@')[0] || "Otaku";
+      let photoURL = currentUser?.photoURL || null;
+
+      try {
+        const userDocSnap = await getDoc(doc(db, "users", uid));
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          username = userData.displayName || userData.username || username;
+          photoURL = userData.photoURL || userData.avatarUrl || userData.avatar || photoURL;
+        }
+      } catch (err) {
+        console.warn("Profil Firestore non accessible pour le post, utilisation du profil Auth:", err);
       }
 
       const postData: Omit<Post, "id"> = {
@@ -167,7 +173,21 @@ export const usePost = (uid: string | undefined) => {
     return () => unsubscribe();
   }, []);
 
-  const toggleLike = useCallback(async (postId: string) => {
+  // ── Supprimer un post ─────────────────────────────────────────
+  const deletePost = useCallback(async (postId: string) => {
+    if (!uid) throw new Error("Utilisateur non connecté");
+    try {
+      await deleteDoc(doc(db, "posts", postId));
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      console.log("✅ Post supprimé avec succès:", postId);
+    } catch (err: unknown) {
+      console.error("❌ Erreur suppression post:", err);
+      setError(getErrorMessage(err));
+      throw err;
+    }
+  }, [uid]);
+
+  const toggleLike = useCallback(async (postId: string, postAuthorUid?: string) => {
     if (!uid) throw new Error("Utilisateur non connecté");
 
     try {
@@ -198,6 +218,19 @@ export const usePost = (uid: string | undefined) => {
 
         await batch.commit();
         console.log("✅ Like ajouté");
+
+        // Déclencher la notification si ce n'est pas son propre post
+        if (postAuthorUid && postAuthorUid !== uid) {
+          const currentUser = auth.currentUser;
+          sendNotification({
+            userId: postAuthorUid,
+            fromUid: uid,
+            fromUsername: currentUser?.displayName || currentUser?.email?.split('@')[0] || "Un Otaku",
+            fromPhotoURL: currentUser?.photoURL || null,
+            type: "like_post",
+            postId,
+          });
+        }
       }
 
       // Le listener en temps réel va rafraîchir les posts automatiquement
@@ -210,30 +243,80 @@ export const usePost = (uid: string | undefined) => {
 
   const addComment = useCallback(async (
     postId: string,
-    content: string
+    content: string,
+    options?: {
+      postAuthorUid?: string;
+      parentId?: string | null;
+      replyToUsername?: string;
+      parentAuthorUid?: string;
+    }
   ) => {
     if (!uid) throw new Error("Utilisateur non connecté");
     
     if (!content.trim()) throw new Error("Le commentaire ne peut pas être vide");
 
     try {
-      // Le commentaire et le compteur du post partent dans la même
-      // écriture atomique, sinon stats.comments dérive du réel.
+      const currentUser = auth.currentUser;
+      let username = currentUser?.displayName || currentUser?.email?.split('@')[0] || "Otaku";
+      let userAvatar = currentUser?.photoURL || null;
+
+      try {
+        const userDocSnap = await getDoc(doc(db, "users", uid));
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          username = userData.displayName || userData.username || username;
+          userAvatar = userData.photoURL || userData.avatarUrl || userData.avatar || userAvatar;
+        }
+      } catch (err) {
+        console.warn("Profil Firestore non accessible pour le commentaire:", err);
+      }
+
+      const commentDocRef = doc(collection(db, "comments"));
       const batch = writeBatch(db);
 
-      batch.set(doc(collection(db, "comments")), {
+      batch.set(commentDocRef, {
         postId,
         uid,
-        content,
+        username,
+        userAvatar,
+        content: content.trim(),
         createdAt: serverTimestamp(),
         likes: 0,
+        ...(options?.parentId && { parentId: options.parentId }),
+        ...(options?.replyToUsername && { replyToUsername: options.replyToUsername }),
       });
+
       batch.update(doc(db, "posts", postId), {
         "stats.comments": increment(1),
       });
 
       await batch.commit();
-    } catch (err: unknown) { // ✅ Remplacement de `any` par `unknown`
+
+      // Envoi de la notification temps réel
+      if (options?.parentId && options?.parentAuthorUid && options.parentAuthorUid !== uid) {
+        sendNotification({
+          userId: options.parentAuthorUid,
+          fromUid: uid,
+          fromUsername: username,
+          fromPhotoURL: userAvatar,
+          type: "reply_comment",
+          postId,
+          commentId: commentDocRef.id,
+          contentPreview: content.trim(),
+        });
+      } else if (options?.postAuthorUid && options.postAuthorUid !== uid) {
+        sendNotification({
+          userId: options.postAuthorUid,
+          fromUid: uid,
+          fromUsername: username,
+          fromPhotoURL: userAvatar,
+          type: "comment_post",
+          postId,
+          commentId: commentDocRef.id,
+          contentPreview: content.trim(),
+        });
+      }
+    } catch (err: unknown) {
       console.error("❌ Erreur ajout commentaire:", err);
       throw new Error(getErrorMessage(err));
     }
@@ -247,5 +330,68 @@ export const usePost = (uid: string | undefined) => {
     fetchFeed,
     toggleLike,
     addComment,
+    deletePost,
   };
+};
+
+/**
+ * Hook temps réel pour écouter les commentaires d'une publication spécifique
+ */
+export const usePostComments = (postId: string | undefined) => {
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!postId) {
+      setComments([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const q = query(
+      collection(db, "comments"),
+      where("postId", "==", postId)
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const list: Comment[] = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          const createdAtDate = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
+          return {
+            id: docSnap.id,
+            postId: data.postId,
+            uid: data.uid,
+            username: data.username || "Otaku",
+            userAvatar: data.userAvatar || null,
+            content: data.content,
+            createdAt: createdAtDate,
+            likes: data.likes || 0,
+            parentId: data.parentId || null,
+            replyToUsername: data.replyToUsername,
+          };
+        });
+
+        // Tri par date croissante pour afficher la conversation dans l'ordre chronologique
+        list.sort((a, b) => {
+          const timeA = a.createdAt instanceof Date ? a.createdAt.getTime() : 0;
+          const timeB = b.createdAt instanceof Date ? b.createdAt.getTime() : 0;
+          return timeA - timeB;
+        });
+
+        setComments(list);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("❌ Erreur écouteur commentaires:", error);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [postId]);
+
+  return { comments, loading };
 };

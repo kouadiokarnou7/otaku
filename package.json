@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "deploy:rules": "npx firebase-tools deploy --only firestore:rules --project otaku-tesy",
+    "deploy:storage": "npx firebase-tools deploy --only storage --project otaku-tesy",
+    "deploy:all": "npx firebase-tools deploy --only firestore:rules,storage --project otaku-tesy",
+    "make-admin": "node scripts/make-admin.mjs",
+    "create-admin": "node scripts/create-admin.mjs",
+    "reset-user": "node scripts/reset-to-user.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

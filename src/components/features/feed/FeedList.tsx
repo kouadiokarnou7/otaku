@@ -7,13 +7,25 @@ import PostCard from "./Postcard";
 
 interface FeedListProps {
   posts: Post[];
-  onLike?: (postId: string) => void;
+  currentUserUid?: string;
+  isAdmin?: boolean;
+  onLike?: (postId: string, postAuthorUid?: string) => void;
+  onComment?: (
+    postId: string, 
+    content: string, 
+    options?: { postAuthorUid?: string; parentId?: string | null; replyToUsername?: string; parentAuthorUid?: string }
+  ) => Promise<void>;
+  onDelete?: (postId: string) => Promise<void>;
   emptyMessage?: string;
 }
 
 export default function FeedList({
   posts,
+  currentUserUid,
+  isAdmin,
   onLike,
+  onComment,
+  onDelete,
   emptyMessage = "Aucun post pour le moment 🎮",
 }: FeedListProps) {
   // ── État vide ──
@@ -45,7 +57,14 @@ export default function FeedList({
           // se voit plus qu'elle n'apporte, surtout au scroll.
           transition={{ delay: Math.min(index, 6) * 0.05 }}
         >
-          <PostCard post={post} onLike={onLike} />
+          <PostCard
+            post={post}
+            currentUserUid={currentUserUid}
+            isAdmin={isAdmin}
+            onLike={onLike}
+            onComment={onComment}
+            onDelete={onDelete}
+          />
         </motion.div>
       ))}
     </div>

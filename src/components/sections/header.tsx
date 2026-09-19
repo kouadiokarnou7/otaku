@@ -109,7 +109,7 @@ export default function Header() {
                 </MotionLink>
                 <Link href="/profile" className="relative size-7 rounded-full overflow-hidden border border-[#FF3E00] shrink-0">
                   {user.photoURL ? (
-                    <Image src={user.photoURL} alt="Avatar" fill className="object-cover" unoptimized />
+                    <Image src={user.photoURL} alt="Avatar" fill sizes="28px" className="object-cover" unoptimized />
                   ) : (
                     <div className="size-full bg-[#FF3E00] flex items-center justify-center text-white text-[9px] font-bold">
                       {(user.displayName || user.email || "U")[0].toUpperCase()}

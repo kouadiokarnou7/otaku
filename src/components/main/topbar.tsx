@@ -4,9 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, User, LogIn, LogOut, Moon, Sun, Search, Settings, Sparkles } from "lucide-react";
+import { Bell, User, LogIn, LogOut, Moon, Sun, Search, Settings, Sparkles, Shield } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/lib/hooks/store/auth/useauth";
+import { useProfile } from "@/lib/hooks/store/useProfile";
 import { getFavoriteAccentColor } from "@/lib/theme/themeColors";
 
 const MotionLink = motion.create(Link);
@@ -51,6 +52,7 @@ function AuthButtons() {
  */
 function ProfileDropdown() {
   const { user, isInitializing, logout } = useAuth();
+  const { profile } = useProfile(user?.uid);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -77,6 +79,8 @@ function ProfileDropdown() {
   const name = user.displayName || user.email || "Otaku";
   const initials = name.slice(0, 2).toUpperCase();
 
+  const avatarSrc = profile?.photoURL || user.photoURL;
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -86,9 +90,9 @@ function ProfileDropdown() {
         aria-label="Menu du profil"
         className="cursor-pointer block rounded-full focus:outline-none ring-2 ring-transparent hover:ring-primary/50 transition-all"
       >
-        {user.photoURL ? (
+        {avatarSrc ? (
           <Image
-            src={user.photoURL}
+            src={avatarSrc}
             alt={name}
             width={34}
             height={34}
@@ -113,10 +117,30 @@ function ProfileDropdown() {
             className="absolute right-0 mt-2 w-56 rounded-2xl border border-border/90 bg-[#0e1338]/95 p-2 shadow-2xl backdrop-blur-xl z-50 text-foreground"
           >
             {/* En-tête de prévisualisation du profil */}
-            <div className="px-3 py-2 border-b border-border/60 mb-1.5">
-              <p className="text-xs font-bold text-white truncate">{name}</p>
+            {/* En-tête de prévisualisation du profil */}
+            <div className="px-3 py-2 border-b border-border/60 mb-2">
+              <div className="flex items-center justify-between gap-1.5">
+                <p className="text-xs font-bold text-white truncate">{name}</p>
+                {profile?.role === "admin" && (
+                  <span className="text-[9px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/40 px-1.5 py-0.2 rounded-md">
+                    Admin
+                  </span>
+                )}
+              </div>
               <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
             </div>
+
+            {/* Passerelle directe vers l'Espace Admin pour les administrateurs */}
+            {profile?.role === "admin" && (
+              <Link
+                href="/admin/content"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-amber-400 hover:text-amber-300 hover:bg-amber-500/15 rounded-xl transition-colors no-underline border border-amber-500/30 mb-1.5 shadow-sm bg-amber-500/5"
+              >
+                <Shield size={15} className="text-amber-400" />
+                <span>Espace Admin</span>
+              </Link>
+            )}
 
             {/* Lien Mon profil */}
             <Link

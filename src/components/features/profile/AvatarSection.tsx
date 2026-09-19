@@ -46,6 +46,8 @@ export default function AvatarSection({
               src={imgSrc}
               alt={`Avatar de ${displayName}`}
               fill
+              sizes="(max-width: 640px) 96px, 112px"
+              unoptimized
               className="object-cover"
               priority
             />

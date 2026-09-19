@@ -1,0 +1,48 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    // 5 Mo maximum
+    function tailleValide() {
+      return request.resource.size <= 5 * 1024 * 1024;
+    }
+
+    // Avatars utilisateurs (publics en lecture, propriétaire en écriture)
+    match /avatars/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(userId) && tailleValide() && isImage();
+      allow delete: if isOwner(userId);
+    }
+
+    // Médias des publications
+    match /posts/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(userId) && tailleValide() && isImage();
+      allow delete: if isOwner(userId);
+    }
+
+    // Couvertures de mangas et assets généraux
+    match /mangas/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn() && tailleValide() && isImage();
+      allow delete: if isSignedIn();
+    }
+
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn() && tailleValide() && isImage();
+    }
+  }
+}

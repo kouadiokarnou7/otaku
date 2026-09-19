@@ -22,19 +22,17 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
-    // Le rôle est lu depuis le document utilisateur.
-    // Il ne peut PAS être modifié par l'utilisateur (voir /users ci-dessous),
-    // donc cette lecture est fiable.
+    // Le rôle est lu depuis le document utilisateur ou whitelist d'administration.
+    // (Voir docs/ADMIN_ROLES_AND_DEPLOYMENT.md pour les stratégies local vs production)
     function isAdmin() {
-      return isSignedIn()
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return isSignedIn() && (
+        request.auth.token.email in ['admin@otaku225.ci', 'alexandreroxkia@gmail.com', 'ppmoi@gmail.com'] ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
     }
 
     // Clés RÉELLEMENT modifiées par cette écriture.
-    // ⚠️ Ne jamais utiliser request.resource.data.keys() pour ça :
-    // request.resource.data est le document APRÈS écriture (fusionné),
-    // pas le delta. C'était le bug des anciennes règles.
     function affected() {
       return request.resource.data.diff(resource.data).affectedKeys();
     }
@@ -45,11 +43,14 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isSignedIn();
 
-      // À l'inscription : rôle forcé à 'user'.
-      // Empêche de se créer directement un compte admin.
+      // À l'inscription : rôle forcé à 'user' sauf pour les administrateurs désignés
       allow create: if isOwner(userId)
         && request.resource.data.uid == userId
-        && request.resource.data.role == 'user';
+        && (
+          !('role' in request.resource.data) ||
+          request.resource.data.role == 'user' ||
+          request.auth.token.email in ['admin@otaku225.ci', 'alexandreroxkia@gmail.com', 'ppmoi@gmail.com']
+        );
 
       // L'utilisateur édite son profil, JAMAIS son rôle ni ses stats.
       // Sans ça : auto-promotion admin + XP/niveaux/badges falsifiables.

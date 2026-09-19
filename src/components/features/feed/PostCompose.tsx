@@ -61,6 +61,7 @@ export default function PostComposer({ user, onSubmit, onCancel }: PostComposerP
   return (
     <AnimatePresence>
       <motion.div
+        key="post-compose-overlay"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -68,7 +69,10 @@ export default function PostComposer({ user, onSubmit, onCancel }: PostComposerP
         onClick={onCancel}
       />
 
-      <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none p-0 md:p-4">
+      <div
+        key="post-compose-modal-container"
+        className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none p-0 md:p-4"
+      >
         <motion.div
           variants={modalVariants}
           initial="hidden"
@@ -109,6 +113,8 @@ export default function PostComposer({ user, onSubmit, onCancel }: PostComposerP
                   }
                   alt={user.displayName}
                   fill
+                  sizes="40px"
+                  unoptimized
                   className="object-cover"
                 />
               </div>

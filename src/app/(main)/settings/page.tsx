@@ -21,6 +21,7 @@ import {
   Pipette,
   Sparkles,
   Construction,
+  Info,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -36,7 +37,7 @@ import {
 } from "@/lib/theme/themeColors";
 
 // Sections des paramètres avec ordre demandé :
-// 1. Mon compte, 2. Apparence & Thème, 3. Confidentialité, 4. Sécurité & Compte
+// 1. Mon compte, 2. Apparence & Thème, 3. Confidentialité, 5. Sécurité & Compte, 4. À propos
 const SETTINGS_SECTIONS = [
   {
     id: "account" as const,
@@ -56,12 +57,19 @@ const SETTINGS_SECTIONS = [
     icon: ShieldCheck,
     desc: "Visibilité et données privées",
   },
+   {
+    id: "about" as const,
+    label: "À propos",
+    icon: Info,
+    desc: "Version & communauté Nekama",
+  },
   {
     id: "security" as const,
     label: "Sécurité & Compte",
     icon: Lock,
     desc: "Session et suppression de compte",
   },
+ 
 ] as const;
 
 type SettingsSectionId = (typeof SETTINGS_SECTIONS)[number]["id"];
@@ -208,6 +216,7 @@ export default function SettingsPage() {
                 src={profile.photoURL}
                 alt=""
                 fill
+                sizes="48px"
                 className="object-cover"
                 unoptimized
               />
@@ -325,6 +334,7 @@ export default function SettingsPage() {
                             src={preview || profile?.photoURL || ""}
                             alt="Avatar"
                             fill
+                            sizes="80px"
                             className="object-cover"
                             unoptimized
                           />
@@ -649,6 +659,57 @@ export default function SettingsPage() {
                       <Trash2 size={15} />
                       <span>Supprimer mon compte</span>
                     </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* 5. À PROPOS D'OTAKU225 / NEKAMA */}
+            {activeSection === "about" && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.15 }}
+                className="space-y-4"
+              >
+                <div className="flex items-center gap-2 pb-1">
+                  <Info size={18} className="text-primary" />
+                  <h2 className="text-sm font-bold text-white font-heading">
+                    À propos de Nekama
+                  </h2>
+                </div>
+
+                <div className="rounded-2xl border border-border/80 bg-card/80 p-5 space-y-4 shadow-sm text-xs">
+                  <div className="flex items-center gap-3 pb-3 border-b border-border/60">
+                    <div className="size-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-fuchsia-600 flex items-center justify-center text-lg font-black text-white shadow-md">
+                      
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white font-heading">
+                        Otaku225 — Nekama
+                      </h3>
+                      <p className="text-[11px] text-primary font-medium">
+                        Version 0.2.0 (Bêta V1)
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 leading-relaxed text-muted-foreground">
+                    <p>
+                      <strong className="text-white">Nekama</strong> est le réseau social et hub interactif dédié aux passionnés d&apos;animés, de mangas et de pop-culture japonaise.
+                    </p>
+                    <p>
+                      Partage tes critiques, réagis aux épisodes, vote aux sondages officiels et personnalise ton interface avec les ambiances visuelles de ton choix.
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-border/60 space-y-1.5">
+                    <p className="text-[11px] font-bold text-white uppercase tracking-wider">
+                      Communauté & Statut
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Membre officiel de la communauté Nekama 
+                    </p>
                   </div>
                 </div>
               </motion.div>

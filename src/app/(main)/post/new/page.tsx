@@ -276,7 +276,7 @@ export default function NewPostPage() {
           {/* Prévisualisation de l'image si uploadée */}
           {mediaPreview && (
             <div className="relative rounded-2xl overflow-hidden border border-border/80 aspect-video bg-black/40">
-              <Image src={mediaPreview} alt="Aperçu" fill className="object-cover" />
+              <Image src={mediaPreview} alt="Aperçu" fill sizes="(max-width: 768px) 100vw, 550px" className="object-cover" />
               <button
                 type="button"
                 onClick={() => {

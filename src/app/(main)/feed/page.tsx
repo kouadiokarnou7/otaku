@@ -7,7 +7,7 @@ import { useProfile } from "@/lib/hooks/store/useProfile";
 import PublishFAB from "@/components/main/PublishFAB";
 import FeedList from "@/components/features/feed/FeedList";
 import PostComposer from "@/components/features/feed/PostCompose";
-import { RefreshCw, Image as ImageIcon, BarChart3, Smile } from "lucide-react";
+import { RefreshCw, Image as ImageIcon, BarChart3, Smile, Shield, Sparkles, MessageSquare } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { uploadAvatar } from "@/lib/firebase/storage";
@@ -56,9 +56,12 @@ const OFFICIAL_FEEDBACK_POLL_POST: Post = {
 export default function FeedPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { profile } = useProfile(user?.uid);
-  const { posts, loading, error, createPost, fetchFeed, toggleLike } = usePost(user?.uid);
-  
+  const { posts, loading, error, createPost, fetchFeed, toggleLike, addComment, deletePost } = usePost(user?.uid);
+
   const [showComposer, setShowComposer] = useState(false);
+  const [filterTab, setFilterTab] = useState<"all" | "community" | "polls">("all");
+
+  const isAdmin = profile?.role === "admin";
 
   // Rafraîchir le feed au montage
   useEffect(() => {
@@ -66,6 +69,18 @@ export default function FeedPage() {
       fetchFeed();
     }
   }, [user?.uid, fetchFeed]);
+
+  const allFeedPosts = [
+    OFFICIAL_FEEDBACK_POLL_POST,
+    ...posts.filter((p) => p.id !== OFFICIAL_FEEDBACK_POLL_POST.id),
+  ];
+
+  const filteredPosts =
+    filterTab === "community"
+      ? posts.filter((p) => p.id !== OFFICIAL_FEEDBACK_POLL_POST.id)
+      : filterTab === "polls"
+        ? [OFFICIAL_FEEDBACK_POLL_POST, ...posts.filter((p) => !!p.poll && p.id !== OFFICIAL_FEEDBACK_POLL_POST.id)]
+        : allFeedPosts;
 
   /**
    * Gère la création d'un nouveau post.
@@ -76,10 +91,10 @@ export default function FeedPage() {
    */
   const handleCreatePost = async (content: string, mediaUrl?: string) => {
     if (!user) return;
-    
+
     try {
       let uploadedMediaUrl = mediaUrl;
-      
+
       // Si un fichier média est fourni sous forme de base64, on l'upload
       if (mediaUrl && mediaUrl.startsWith('data:')) {
         const response = await fetch(mediaUrl);
@@ -101,8 +116,8 @@ export default function FeedPage() {
    *
    * @param {string} postId - L'ID du post à liker/unliker.
    */
-  const handleLike = async (postId: string) => {
-    await toggleLike(postId);
+  const handleLike = async (postId: string, postAuthorUid?: string) => {
+    await toggleLike(postId, postAuthorUid);
   };
 
   // État de chargement global
@@ -141,6 +156,40 @@ export default function FeedPage() {
 
   return (
     <div className="max-w-xl mx-auto px-3 sm:px-4 py-3 space-y-4 pb-24">
+      {/* ── Bandeau Admin Dédié (Désencombrement & Cockpit) ── */}
+      {isAdmin && (
+        <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-card/90 to-card p-3.5 backdrop-blur-md shadow-lg shadow-amber-500/5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="flex size-9 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+                <Shield size={18} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-white">Mode Administrateur Actif</span>
+                  <span className="text-[9px] bg-amber-500/30 text-amber-300 font-extrabold px-1.5 py-0.5 rounded-full uppercase tracking-wider border border-amber-500/40">ADMIN</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground">Cockpit de modération & validation débloqué</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Link
+                href="/admin/content"
+                className="flex-1 sm:flex-initial text-center px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all no-underline"
+              >
+                📚 Mangas
+              </Link>
+              <Link
+                href="/admin/moderation"
+                className="flex-1 sm:flex-initial text-center px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all no-underline"
+              >
+                🛡️ Modération Feed
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Bloc Publier (PC & Tablette uniquement) ── */}
       <div className="hidden sm:block rounded-2xl border border-border/80 bg-card/80 p-3.5 backdrop-blur-sm shadow-md">
         <div className="flex items-center gap-3">
@@ -154,6 +203,7 @@ export default function FeedPage() {
               }
               alt="Profil"
               fill
+              unoptimized
               className="object-cover"
             />
           </div>
@@ -162,7 +212,7 @@ export default function FeedPage() {
             onClick={() => setShowComposer(true)}
             className="flex-1 text-left px-4 py-2.5 rounded-xl border border-border/70 bg-background/60 text-xs text-muted-foreground hover:border-primary/40 hover:text-white transition-all shadow-inner"
           >
-            Quoi de neuf, otaku ? Partage ton avis... 
+            Quoi de neuf, otaku ? Partage ton avis...
           </button>
           <button
             type="button"
@@ -263,17 +313,58 @@ export default function FeedPage() {
         />
       )}
 
-      {/* ── Liste des publications du feed (avec sondage officiel d'avis application en tête) ── */}
+      {/* ── Onglets de Filtrage du Feed (Désencombrement) ── */}
+      <div className="flex items-center gap-1.5 p-1 bg-card/60 border border-border/70 rounded-2xl">
+        <button
+          type="button"
+          onClick={() => setFilterTab("all")}
+          className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition-all ${filterTab === "all"
+              ? "bg-primary text-white shadow-sm"
+              : "text-muted-foreground hover:text-white"
+            }`}
+        >
+          🌟 Tout ({allFeedPosts.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setFilterTab("community")}
+          className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition-all ${filterTab === "community"
+              ? "bg-primary text-white shadow-sm"
+              : "text-muted-foreground hover:text-white"
+            }`}
+        >
+          💬 Communauté ({posts.filter((p) => p.id !== OFFICIAL_FEEDBACK_POLL_POST.id).length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setFilterTab("polls")}
+          className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition-all ${filterTab === "polls"
+              ? "bg-primary text-white shadow-sm"
+              : "text-muted-foreground hover:text-white"
+            }`}
+        >
+          📊 Sondages
+        </button>
+      </div>
+
+      {/* ── Liste des publications du feed filtrée ── */}
       <FeedList
-        posts={[
-          OFFICIAL_FEEDBACK_POLL_POST,
-          ...posts.filter((p) => p.id !== OFFICIAL_FEEDBACK_POLL_POST.id),
-        ]}
+        posts={filteredPosts}
+        currentUserUid={user?.uid}
+        isAdmin={isAdmin}
         onLike={handleLike}
+        onComment={async (postId, text, options) => {
+          await addComment(postId, text, options);
+        }}
+        onDelete={async (postId) => {
+          await deletePost(postId);
+        }}
         emptyMessage={
           loading
             ? "Chargement des posts..."
-            : "Aucun post pour le moment 🎌\nSois le premier otaku à poster !"
+            : filterTab === "polls"
+              ? "Aucun sondage actif pour le moment 📊"
+              : "Aucun post pour le moment 🎌\nSois le premier otaku à poster !"
         }
       />
 

@@ -42,14 +42,14 @@ export const useAdminGuard = () => {
     const verifierRole = async () => {
       try {
         const snapshot = await getDoc(doc(db, "users", user.uid));
-        const roleUtilisateur: UserRole = snapshot.exists()
-          ? ((snapshot.data().role as UserRole) ?? "user")
-          : "user";
+        const roleFromDoc = snapshot.exists() ? (snapshot.data().role as UserRole) : null;
+        const isAdminAccount = roleFromDoc === "admin";
+        const roleUtilisateur: UserRole = roleFromDoc ?? "user";
 
         if (cancelled) return;
         setRole(roleUtilisateur);
 
-        if (roleUtilisateur !== "admin") {
+        if (!isAdminAccount) {
           router.replace("/feed");
           return;
         }
