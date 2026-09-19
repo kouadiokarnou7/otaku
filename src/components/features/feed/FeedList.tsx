@@ -1,39 +1,52 @@
-
 "use client";
 
-import type { Post, UserProfile } from "@/lib/types";
+import type { Post } from "@/lib/types";
+import { motion } from "framer-motion";
 
-import PostCard from "@/components/features/feed/PostCard";
+import PostCard from "./Postcard";
 
 interface FeedListProps {
   posts: Post[];
-  currentUser: UserProfile;
   onLike?: (postId: string) => void;
   emptyMessage?: string;
 }
 
-export default function FeedList({ 
-  posts, 
-  currentUser, 
+export default function FeedList({
+  posts,
   onLike,
-  emptyMessage = "Aucun post pour le moment 🎮" 
+  emptyMessage = "Aucun post pour le moment 🎮",
 }: FeedListProps) {
+  // ── État vide ──
   if (posts.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-800">
-        <p>{emptyMessage}</p>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl border border-dashed border-border px-6 py-14 text-center"
+      >
+        <p className="whitespace-pre-line font-medium text-foreground">
+          {emptyMessage}
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Reviens bientôt pour découvrir de nouveaux posts 🚀
+        </p>
+      </motion.div>
     );
   }
 
   return (
-    <div className="flex flex-col">
-      {posts.map((post) => (
-        <PostCard 
-          key={post.id} 
-          post={post} 
-          onLike={onLike} 
-        />
+    <div className="flex flex-col gap-4">
+      {posts.map((post, index) => (
+        <motion.div
+          key={post.id}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          // L'escalier s'arrête au 6e post : au-delà, l'attente cumulée
+          // se voit plus qu'elle n'apporte, surtout au scroll.
+          transition={{ delay: Math.min(index, 6) * 0.05 }}
+        >
+          <PostCard post={post} onLike={onLike} />
+        </motion.div>
       ))}
     </div>
   );

@@ -7,10 +7,14 @@ import {
   orderBy, 
   limit,
   serverTimestamp,
-  where
+  where,
+  doc,
+  increment,
+  writeBatch,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebaseconfig";
-import type { Post } from "@/lib/types"; // ✅ ComposerState retiré car inutilisé
+import type { Post } from "@/lib/types";
 
 /**
  * Hook personnalisé pour gérer les posts
@@ -35,10 +39,11 @@ export const usePost = (uid: string | undefined) => {
     content: string,
     mediaUrl?: string,
     tags?: string[],
-    animeId?: number
+    animeId?: number,
+    poll?: import("@/lib/types").PostPoll
   ) => {
     if (!uid) throw new Error("Utilisateur non connecté");
-    if (!content.trim() && !mediaUrl) throw new Error("Le post ne peut pas être vide");
+    if (!content.trim() && !mediaUrl && !poll) throw new Error("Le post ne peut pas être vide");
 
     setLoading(true);
     setError(null);
@@ -49,18 +54,18 @@ export const usePost = (uid: string | undefined) => {
       );
       
       let username = "Anonymous";
-      let userAvatar = null;
+      let photoURL = null;
       
       if (!userSnap.empty) {
         const userData = userSnap.docs[0].data();
         username = userData.username || userData.displayName || "Anonymous";
-        userAvatar = userData.photoURL || null;
+        photoURL = userData.photoURL || null;
       }
 
       const postData: Omit<Post, "id"> = {
         uid,
         username,
-        userAvatar,
+        photoURL,
         userLevel: 1,
         userBadge: "starter",
         content,
@@ -70,6 +75,7 @@ export const usePost = (uid: string | undefined) => {
             type: mediaUrl.match(/\.(mp4|webm)$/i) ? 'video' : 'image',
           }
         }),
+        ...(poll && { poll }),
         stats: { likes: 0, comments: 0, shares: 0 },
         likedByUser: false,
         metadata: {
@@ -100,7 +106,6 @@ export const usePost = (uid: string | undefined) => {
     }
   }, [uid]);
 
-  // ── Récupérer le feed ─────────────────────────────────────
   const fetchFeed = useCallback(async (limitCount: number = 20) => {
     setLoading(true);
     setError(null);
@@ -135,13 +140,73 @@ export const usePost = (uid: string | undefined) => {
     }
   }, []);
 
+  // ── Mettre en place un listener en temps réel pour les posts ─────
   useEffect(() => {
-    fetchFeed();
-  }, [fetchFeed]);
+    const postsQuery = query(
+      collection(db, "posts"),
+      orderBy("metadata.createdAt", "desc"),
+      limit(20)
+    );
+
+    const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
+      const updatedPosts: Post[] = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        metadata: {
+          ...doc.data().metadata,
+          createdAt: doc.data().metadata?.createdAt?.toDate() || new Date(),
+        },
+      } as Post));
+
+      setPosts(updatedPosts);
+    }, (error) => {
+      console.error("❌ Erreur listener posts:", error);
+      setError(getErrorMessage(error));
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const toggleLike = useCallback(async (postId: string) => {
-    console.log("Toggle like:", postId);
-  }, []);
+    if (!uid) throw new Error("Utilisateur non connecté");
+
+    try {
+      const likesRef = collection(db, "posts", postId, "likes");
+      const likeQuery = query(likesRef, where("uid", "==", uid));
+      const likeSnap = await getDocs(likeQuery);
+
+      const postRef = doc(db, "posts", postId);
+
+      // Le document de like et le compteur partent dans la même écriture
+      // atomique : impossible d'avoir un like sans compteur, ou l'inverse.
+      const batch = writeBatch(db);
+
+      if (!likeSnap.empty) {
+        // ❤️ Unlike : supprimer le like et décrémenter
+        batch.delete(doc(db, "posts", postId, "likes", likeSnap.docs[0].id));
+        batch.update(postRef, { "stats.likes": increment(-1) });
+
+        await batch.commit();
+        console.log("✅ Like supprimé");
+      } else {
+        // ❤️ Like : ajouter le like et incrémenter
+        batch.set(doc(likesRef), {
+          uid,
+          createdAt: serverTimestamp(),
+        });
+        batch.update(postRef, { "stats.likes": increment(1) });
+
+        await batch.commit();
+        console.log("✅ Like ajouté");
+      }
+
+      // Le listener en temps réel va rafraîchir les posts automatiquement
+    } catch (err: unknown) {
+      console.error("❌ Erreur toggle like:", err);
+      setError(getErrorMessage(err));
+      throw err;
+    }
+  }, [uid]);
 
   const addComment = useCallback(async (
     postId: string,
@@ -149,14 +214,25 @@ export const usePost = (uid: string | undefined) => {
   ) => {
     if (!uid) throw new Error("Utilisateur non connecté");
     
+    if (!content.trim()) throw new Error("Le commentaire ne peut pas être vide");
+
     try {
-      await addDoc(collection(db, "comments"), {
+      // Le commentaire et le compteur du post partent dans la même
+      // écriture atomique, sinon stats.comments dérive du réel.
+      const batch = writeBatch(db);
+
+      batch.set(doc(collection(db, "comments")), {
         postId,
         uid,
         content,
         createdAt: serverTimestamp(),
         likes: 0,
       });
+      batch.update(doc(db, "posts", postId), {
+        "stats.comments": increment(1),
+      });
+
+      await batch.commit();
     } catch (err: unknown) { // ✅ Remplacement de `any` par `unknown`
       console.error("❌ Erreur ajout commentaire:", err);
       throw new Error(getErrorMessage(err));

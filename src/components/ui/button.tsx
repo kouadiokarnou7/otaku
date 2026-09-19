@@ -5,8 +5,8 @@
 import { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils"; // twMerge helper (voir note bas)
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
-type Size = "sm" | "md" | "lg";
+export type Variant = "primary" | "secondary" | "ghost" | "danger";
+export type Size = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
@@ -15,27 +15,30 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
+// Toutes les couleurs viennent des tokens de globals.css.
+// Aucune valeur en dur ici : changer la marque se fait dans :root.
 const variantStyles: Record<Variant, string> = {
   primary: `
-    bg-violet-600 hover:bg-violet-500 active:bg-violet-700
-    text-white shadow-[0_0_20px_rgba(139,95,230,0.3)]
-    hover:shadow-[0_0_28px_rgba(139,95,230,0.5)]
-    border border-violet-500/30
+    bg-primary hover:bg-brand-light active:bg-brand-dark
+    text-primary-foreground
+    shadow-[0_0_20px_var(--o-glow)]
+    hover:shadow-[0_0_28px_var(--o-glow-s)]
+    border border-brand-border
   `,
   secondary: `
-    bg-[#1a2040] hover:bg-[#222a50] active:bg-[#151a35]
-    text-gray-300 hover:text-white
-    border border-[#2D3748] hover:border-violet-500/40
+    bg-secondary hover:bg-surface-2 active:bg-surface
+    text-secondary-foreground/80 hover:text-secondary-foreground
+    border border-border hover:border-brand-border
   `,
   ghost: `
-    bg-transparent hover:bg-white/5
-    text-gray-400 hover:text-white
-    border border-transparent hover:border-white/10
+    bg-transparent hover:bg-accent
+    text-muted-foreground hover:text-foreground
+    border border-transparent hover:border-border
   `,
   danger: `
-    bg-red-900/30 hover:bg-red-900/50
-    text-red-400 hover:text-red-300
-    border border-red-800/40
+    bg-destructive/20 hover:bg-destructive/35
+    text-destructive-foreground/80 hover:text-destructive-foreground
+    border border-destructive/40
   `,
 };
 
@@ -44,6 +47,29 @@ const sizeStyles: Record<Size, string> = {
   md: "text-sm px-5 py-3 rounded-xl min-h-[48px]",
   lg: "text-base px-6 py-4 rounded-xl min-h-[56px]",
 };
+
+/**
+ * Classes de style du bouton, applicables à un élément autre que <button>.
+ * Nécessaire pour les primitives Radix (AlertDialog) : les imbriquer dans
+ * un <button> produirait un bouton dans un bouton, donc du HTML invalide.
+ */
+export const buttonClasses = (
+  variant: Variant = "primary",
+  size: Size = "md",
+  fullWidth = false
+) =>
+  cn(
+    // Base
+    "relative inline-flex items-center justify-center gap-2",
+    "font-semibold tracking-wide",
+    "transition-all duration-200 ease-out",
+    "cursor-pointer select-none",
+    "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
+    // Variant & size
+    variantStyles[variant],
+    sizeStyles[size],
+    fullWidth && "w-full"
+  );
 
 export default function Button({
   variant = "primary",
@@ -58,19 +84,7 @@ export default function Button({
   return (
     <button
       disabled={disabled || isLoading}
-      className={cn(
-        // Base
-        "relative inline-flex items-center justify-center gap-2",
-        "font-semibold tracking-wide",
-        "transition-all duration-200 ease-out",
-        "cursor-pointer select-none",
-        "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
-        // Variant & size
-        variantStyles[variant],
-        sizeStyles[size],
-        fullWidth && "w-full",
-        className
-      )}
+      className={cn(buttonClasses(variant, size, fullWidth), className)}
       {...props}
     >
       {isLoading ? (
@@ -84,3 +98,8 @@ export default function Button({
     </button>
   );
 }
+
+// Les deux styles d'import coexistent dans le projet :
+// `import Button from ...` (InputField, ProfileHeader) et
+// `import { Button } from ...` (carousel, alert-dialog).
+export { Button };

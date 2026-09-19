@@ -19,6 +19,7 @@ export interface Feature {
   description: string;
   accent: string;
   tag: string;
+  status?: "active" | "standby";
 }
 
 // ── ABOUT ───────────────────────────────────────────────────
@@ -93,6 +94,8 @@ export interface InputFieldProps {
 export interface ProfileStats {
   animesCount: number;
   postsCount: number;
+  followersCount?: number;   // Optionnel : absent des anciens documents Firestore
+  followingCount?: number;   // Optionnel : absent des anciens documents Firestore
   gamesCount: number;        // ✅ Nouveau : suivi des jeux
   xp: number;                // ✅ Points d'expérience pour la progression
   level: number;             // ✅ Niveau calculé depuis l'XP
@@ -105,6 +108,13 @@ export interface ProfileStats {
   } | null;
 }
 
+// ── RÔLES ────────────────────────────────────────────────────
+// ⚠️ Le rôle n'est PAS modifiable par l'utilisateur : les Firestore
+// Security Rules interdisent toute écriture sur ce champ (voir
+// FIRESTORE_RULES.md). La promotion en admin se fait uniquement
+// depuis la console Firebase.
+export type UserRole = "user" | "admin";
+
 export interface UserProfile {
   uid: string;
   username: string;
@@ -113,6 +123,7 @@ export interface UserProfile {
   photoURL: string | null;
   bio: string;
   phone: string;
+  role: UserRole;
   createdAt: Date | null;
   updatedAt?: Date | null;
   stats: ProfileStats;
@@ -129,6 +140,26 @@ export interface ProfileFormData {
   displayName: string;
   bio: string;
   phone: string;
+}
+
+// ── AUTH TYPES ───────────────────────────────────────────────
+export interface RegisterFormData {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  avatar?: string;
+}
+
+export interface LoginFormData {
+  identifier: string; // email ou username
+  password: string;
+  rememberMe?: boolean;
+}
+
+export interface FirebaseAuthError extends Error {
+  code?: string;
+  message: string;
 }
  
 export interface FeedbackMessage {
@@ -147,6 +178,19 @@ export interface PostMedia {
   height?: number;
 }
 
+export interface PollOption {
+  id: string;
+  text: string;
+  votes: number;
+}
+
+export interface PostPoll {
+  question: string;
+  options: PollOption[];
+  totalVotes: number;
+  userVotedOptionId?: string;
+}
+
 export interface Post {
   id: string;
   uid: string;
@@ -157,6 +201,7 @@ export interface Post {
   
   content: string;
   media?: PostMedia;
+  poll?: PostPoll;
   
   stats: {
     likes: number;
@@ -171,6 +216,7 @@ export interface Post {
     updatedAt?: Date;
     tags?: string[];
     visibility: 'public' | 'followers' | 'private';
+    animeId?: number;
   };
 }
 

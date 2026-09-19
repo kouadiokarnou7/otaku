@@ -2,52 +2,72 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
+import { Heart, MessageCircle, Repeat2, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Post } from "@/lib/types";
-import  Button  from "@/components/ui/button";
 
 interface PostActionsProps {
   post: Post;
   onLike?: () => void;
 }
 
+// Boutons fantômes : pas de bordure au repos, la couleur n'apparaît
+// qu'au survol. C'est ce qui garde la barre d'actions discrète sous
+// le contenu, qui reste l'élément principal de la carte.
+const ACTION =
+  "flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition-all hover:text-white";
+
 export default function PostActions({ post, onLike }: PostActionsProps) {
   return (
-    <div className="flex items-center justify-around px-4 py-3 border-t border-[#1e2540]">
-      {/* Like */}
+    <div className="flex items-center justify-between py-1">
+      <div className="flex items-center gap-2 sm:gap-4">
+        {/* Like */}
+        <motion.button
+          whileTap={{ scale: 0.88 }}
+          onClick={onLike}
+          aria-pressed={post.likedByUser}
+          aria-label={post.likedByUser ? "Retirer le like" : "Aimer ce post"}
+          className={cn(
+            ACTION,
+            "hover:bg-[#EF4444]/10 hover:text-[#EF4444]",
+            post.likedByUser && "text-[#EF4444]"
+          )}
+        >
+          <Heart
+            size={18}
+            className={post.likedByUser ? "fill-[#EF4444] text-[#EF4444]" : ""}
+          />
+          <span className="tabular-nums font-bold">{post.stats.likes}</span>
+        </motion.button>
+
+        {/* Commentaires */}
+        <motion.button
+          whileTap={{ scale: 0.88 }}
+          aria-label="Commenter"
+          className={cn(ACTION, "hover:bg-primary/10 hover:text-primary")}
+        >
+          <MessageCircle size={18} />
+          <span className="tabular-nums font-bold">{post.stats.comments}</span>
+        </motion.button>
+
+        {/* Partager */}
+        <motion.button
+          whileTap={{ scale: 0.88 }}
+          aria-label="Partager"
+          className={cn(ACTION, "hover:bg-white/10 hover:text-white")}
+        >
+          <Repeat2 size={18} />
+        </motion.button>
+      </div>
+
+      {/* Sauvegarde */}
       <motion.button
-        whileTap={{ scale: 0.9 }}
-        onClick={onLike}
-        className={cn(
-          "flex items-center gap-1.5 text-sm transition-colors",
-          post.likedByUser ? "text-red-400" : "text-gray-400 hover:text-red-400"
-        )}
+        whileTap={{ scale: 0.88 }}
+        aria-label="Enregistrer"
+        className={cn(ACTION, "hover:bg-primary/10 hover:text-primary")}
       >
-        <Heart 
-          size={18} 
-          fill={post.likedByUser ? "currentColor" : "none"} 
-        />
-        <span>{post.stats.likes}</span>
-      </motion.button>
-
-      {/* Comment */}
-      <Button className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-orange-400 transition-colors">
-        <MessageCircle size={18} />
-        <span>{post.stats.comments}</span>
-      </Button>
-
-      {/* Share */}
-      <Button className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-orange-400 transition-colors">
-        <Share2 size={18} />
-        <span className="hidden sm:inline">Partager</span>
-      </Button>
-      {/* Save */}
-      <Button className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-orange-400 transition-colors">
         <Bookmark size={18} />
-        <span className="hidden sm:inline">Enregistrer</span>
-       
-      </Button>
+      </motion.button>
     </div>
   );
 }

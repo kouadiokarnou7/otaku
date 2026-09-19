@@ -49,6 +49,8 @@ export function useProfile(uid: string | undefined) {
           photoURL: user?.photoURL || snap.data()?.photoURL || null,
           bio: snap.data()?.bio || "",
           phone: snap.data()?.phone || "",
+          // Défaut prudent : en l'absence de rôle en base, on suppose "user"
+          role: snap.data()?.role === "admin" ? "admin" : "user",
           createdAt: snap.data()?.createdAt?.toDate() || null,
           stats: snap.data()?.stats || DEFAULT_STATS,
         };
@@ -151,6 +153,11 @@ export function useProfile(uid: string | undefined) {
         setIsEditing(false);
         setPreview(null);
         setAvatarFile(null);
+
+        // 🔄 Recharger la page après un court délai pour actualiser le header global
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
       } catch (err) {
         console.error("❌ Erreur mise à jour :", err);
         setMessage({ type: "error", text: "❌ Une erreur est survenue. Réessayez." });

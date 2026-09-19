@@ -13,20 +13,14 @@ export default function PublishFAB({ onClick }: PublishFABProps) {
       onClick={onClick}
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ type:"spring", stiffness:300, damping:20, delay:0.3 }}
-      whileHover={{ scale: 1.08, boxShadow:"0 8px 32px rgba(255,107,26,0.55)" }}
+      transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.3 }}
+      whileHover={{ scale: 1.08 }}
       whileTap={{ scale: 0.93 }}
-      className="md:hidden"
-      style={{
-        position:"fixed", bottom:88, right:20,
-        width:56, height:56, borderRadius:18,
-        background:"linear-gradient(135deg,#FF6B1A,#C0392B)",
-        display:"flex", alignItems:"center", justifyContent:"center",
-        boxShadow:"0 4px 20px rgba(255,107,26,0.4)",
-        zIndex:40, border:"none", cursor:"pointer",
-      }}
+      aria-label="Publier un post"
+      // bottom-22 : au-dessus de la BottomBar (h-16) + marge.
+      className="fixed bottom-[84px] right-4 z-40 flex size-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 via-[#8B5CF6] to-indigo-500 text-white shadow-[0_4px_20px_rgba(139,92,246,0.45)] md:hidden"
     >
-      <PenLine size={22} color="#fff" strokeWidth={2.2} />
+      <PenLine size={20} strokeWidth={2.2} />
     </motion.button>
   );
 }

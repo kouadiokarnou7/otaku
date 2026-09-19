@@ -17,12 +17,29 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'ui-avatars.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'myanimelist.net',
+        pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.myanimelist.net',
+        pathname: '/**',
+      },
     ],
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 60,
   },
 
-  allowedDevOrigins: ['192.168.2.5'], // ✅ fusion ici
+  allowedDevOrigins: [
+    '192.168.2.5',
+    '*.ngrok-free.app',
+  ],
 };
 
 export default nextConfig;

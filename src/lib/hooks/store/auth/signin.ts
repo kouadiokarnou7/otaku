@@ -7,12 +7,15 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   updateProfile,
+
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase/firebaseconfig";
 import { generateAvatar } from "@/lib/utils";
 import { registerSchema } from "@/lib/validators";
+import { uploadAvatar } from "@/lib/firebase/storage";
+import type { RegisterFormData } from "@/lib/types";
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -23,7 +26,7 @@ function generateUsername(name: string): string {
     .replace(/\s+/g, "_")
     .replace(/[^a-z0-9_]/g, "")
     .slice(0, 12);
-  
+
   // Ajoute un suffixe aléatoire pour éviter les conflits
   const suffix = Math.random().toString(36).slice(2, 6);
   return `${base}_${suffix}`;
@@ -35,7 +38,7 @@ export function useRegister() {
   const [error, setError] = useState<string | null>(null);
 
   // 🔐 INSCRIPTION EMAIL/PASSWORD
-  const registerdata = useCallback(async (data: any) => {
+  const registerdata = useCallback(async (data: RegisterFormData, avatarFile?: File | null) => {
     setLoading(true);
     setError(null);
 
@@ -54,8 +57,19 @@ export function useRegister() {
       // 3. Génération pseudo unique (sans requête Firestore)
       const username = generateUsername(validated.username);
 
-      // 4. Avatar : fourni ou généré
-      const avatar = validated.avatar ?? generateAvatar(username);
+      // 4. Avatar : upload de l'image ou fallback
+      let avatar = null;
+      if (avatarFile) {
+        try {
+          avatar = await uploadAvatar(user.uid, avatarFile);
+        } catch (uploadErr) {
+          console.warn("⚠️ Échec de l'upload de l'avatar lors de l'inscription:", uploadErr);
+        }
+      }
+
+      if (!avatar) {
+        avatar = validated.avatar ?? generateAvatar(username);
+      }
 
       // 5. Écriture Firestore → ID du document = user.uid ✅
       await setDoc(doc(db, "users", user.uid), {
@@ -69,19 +83,23 @@ export function useRegister() {
       });
 
       // 6. Mettre à jour le profil Firebase Auth (optionnel mais recommandé)
-      await updateProfile(user, { displayName: username });
+      await updateProfile(user, {
+        displayName: username,
+        photoURL: avatar ?? null
+      });
 
       router.push("/feed");
       return user;
 
-    } catch (err: any) {
+    } catch (err) {
       // Messages d'erreur plus clairs
-      let message = err.message || "Erreur lors de l'inscription";
-      if (err.code === "auth/email-already-in-use") {
+      const firebaseErr = err as { code?: string; message: string };
+      let message = firebaseErr.message || "Erreur lors de l'inscription";
+      if (firebaseErr.code === "auth/email-already-in-use") {
         message = "Cet email est déjà utilisé";
-      } else if (err.code === "auth/weak-password") {
+      } else if (firebaseErr.code === "auth/weak-password") {
         message = "Mot de passe trop faible (min. 6 caractères)";
-      } else if (err.code === "permission-denied") {
+      } else if (firebaseErr.code === "permission-denied") {
         message = "Erreur de permissions Firestore. Vérifie tes règles.";
       }
       setError(message);
@@ -125,9 +143,10 @@ export function useRegister() {
       router.push("/feed");
       return user;
 
-    } catch (err: any) {
-      if (err.code !== "auth/popup-closed-by-user") {
-        setError(err.message || "Échec connexion Google");
+    } catch (err) {
+      const firebaseErr = err as { code?: string; message: string };
+      if (firebaseErr.code !== "auth/popup-closed-by-user") {
+        setError(firebaseErr.message || "Échec connexion Google");
         throw err;
       }
     } finally {
